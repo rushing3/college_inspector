@@ -30,10 +30,10 @@ Visual.prototype.init = function(data, group) {
         .append('circle')
         .attr('r', 3)
         .attr('cx', function(d, i) {
-            return 0;
+            return (i%15)*7 + 10;
         })
         .attr('cy', function(d, i) {
-            return (i+1)*7;
+            return Math.floor(i/15)*7 + 40;
         });
 
 }
