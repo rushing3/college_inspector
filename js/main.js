@@ -8,7 +8,7 @@ var svgHeight = +svg.attr('height');
 var padding = {t: 20, r: 20, b: 20, l: 20};
 
 // Locale color scale
-var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20c);
+var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
 // Num of dots in row
 var rowNum = 8;
@@ -107,6 +107,7 @@ function(error, dataset){
         .key(function(d) {
             return d.region;
         })
+        .sortKeys(d3.ascending)
         .rollup(function(v) { return {
             values: v,
             avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
