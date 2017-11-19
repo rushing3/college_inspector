@@ -10,6 +10,15 @@ var padding = {t: 20, r: 20, b: 20, l: 20};
 // Locale color scale
 var localeColorScale = d3.scaleOrdinal(d3.schemeDark2);
 
+// Num of dots in row
+var rowNum = 11;
+
+// Dot radius
+var dotRad = 4;
+
+// Dot spacing
+var dotSpace = dotRad*2 + 1;
+
 function Visual(x) {
     this.x = x;
 }
@@ -21,6 +30,19 @@ Visual.prototype.init = function(data, group) {
     data.value.values.sort(function(a, b) {
         return d3.descending(a.locale, b.locale);
     });
+
+    // Nest data by locale
+    localeNestedData = d3.nest()
+        .key(function(d) {
+            return d.locale;
+        })
+        .rollup(function(v) { return {
+            values: v,
+            avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
+            avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
+        }; })
+        .entries(data.value.values);
+    console.log(localeNestedData);
 
     // Add region label
     viz.append('text')
@@ -49,19 +71,32 @@ Visual.prototype.init = function(data, group) {
         .attr('transform', 'translate(15, 55)');
 
     // Add dot for each college in region, color coded by locale
-    viz.selectAll('.college')
-        .data(data.value.values)
+    var prevLocales = 0;
+    locales = viz.selectAll('.locales')
+        .data(localeNestedData)
         .enter()
-        .append('circle')
-        .attr('fill', function(d) {
-            return localeColorScale(d.locale);
+        .append('g')
+        .attr('transform', function(d, i) {
+            var tx = 15;
+            var ty = prevLocales;
+            prevLocales = (Math.ceil(d.value.values.length/rowNum)*dotSpace) + prevLocales + 5;
+            return 'translate('+[tx, ty]+')';
         })
-        .attr('r', 5)
-        .attr('cx', function(d, i) {
-            return (i%11)*11 + 10;
-        })
-        .attr('cy', function(d, i) {
-            return Math.floor(i/11)*11 + 70;
+        .each(function(d, i) {
+            d3.select(this).selectAll('.colleges')
+                .data(d.value.values)
+                .enter()
+                .append('circle')
+                .attr('fill', function(d) {
+                    return localeColorScale(d.locale);
+                })
+                .attr('r', dotRad)
+                .attr('cx', function(d, i) {
+                    return (i%rowNum)*dotSpace + 10;
+                })
+                .attr('cy', function(d, i) {
+                    return Math.floor(i/rowNum)*dotSpace + 70;
+                });
         });
 
 }
