@@ -8,7 +8,7 @@ var svgHeight = +svg.attr('height');
 var padding = {t: 20, r: 20, b: 20, l: 20};
 
 // Locale color scale
-var localeColorScale = d3.scaleOrdinal(d3.schemeSet2);
+var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20c);
 
 // Num of dots in row
 var rowNum = 8;
