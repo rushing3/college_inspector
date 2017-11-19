@@ -19,7 +19,7 @@ var dotRad = 7;
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
 
-// Make tooltip return "<h5>"+d['name']+"</h5>";
+// Make tooltip
 var toolTip = d3.tip()
     .attr("class", "d3-tip")
     .offset([-12, 0])
@@ -37,8 +37,8 @@ var toolTip = d3.tip()
                 <tbody>
                     <tr>
                         <td>`+d['act_median']+`</td>
-                        <td>`+(d['admission_rate']*100)+`%</td>
-                        <td>$`+d['avg_cost']+`</td>
+                        <td>`+(d['admission_rate']*100).toFixed(2)+`%</td>
+                        <td>$`+Math.round(d['avg_cost'])+`</td>
                         <td>`+d['control']+`</td>
                     </tr>
                 </tbody>
@@ -53,9 +53,9 @@ var toolTip = d3.tip()
                 <tbody>
                     <tr>
                         <td>`+d['undergrad_population']+`</td>
-                        <td>`+(d['retention_rate']*100)+`%</td>
-                        <td>$`+d['median_debt']+`</td>
-                        <td>$`+d['median_earnings_after_8year']+`</td>
+                        <td>`+(d['retention_rate']*100).toFixed(2)+`%</td>
+                        <td>$`+Math.round(d['median_debt'])+`</td>
+                        <td>$`+Math.round(d['median_earnings_after_8year'])+`</td>
                     </tr>
                 </tbody>
             </table>`
