@@ -19,6 +19,14 @@ var dotRad = 7;
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
 
+// Make tooltip
+var toolTip = d3.tip()
+    .html(function(d) {
+        return "<h5>"+d['name']+"</h5>";
+    });
+
+svg.call(toolTip);
+
 function Visual(x) {
     this.x = x;
 }
@@ -71,7 +79,9 @@ Visual.prototype.init = function(data, group) {
         })
         .attr('cy', function(d, i) {
             return Math.floor(i/rowNum)*dotSpace + 70;
-        });
+        })
+        .on('mouseover', toolTip.show)
+        .on('mouseout', toolTip.hide);
 
 }
 
