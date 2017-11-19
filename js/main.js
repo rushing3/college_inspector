@@ -19,11 +19,48 @@ var dotRad = 7;
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
 
-// Make tooltip
+// Make tooltip return "<h5>"+d['name']+"</h5>";
 var toolTip = d3.tip()
+    .attr("class", "d3-tip")
+    .offset([-12, 0])
     .html(function(d) {
-        return "<h5>"+d['name']+"</h5>";
+        return "<h5>"+d['name']+"</h5>" +
+            `<table>
+                <thead>
+                    <tr>
+                        <td>Median ACT</td>
+                        <td>Admission Rate</td>
+                        <td>Avg Cost</td>
+                        <td>Control</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>`+d['act_median']+`</td>
+                        <td>`+(d['admission_rate']*100)+`%</td>
+                        <td>$`+d['avg_cost']+`</td>
+                        <td>`+d['control']+`</td>
+                    </tr>
+                </tbody>
+                <thead>
+                    <tr>
+                        <td>Undergrad Population</td>
+                        <td>Retention Rate</td>
+                        <td>Median Debt</td>
+                        <td>Mean Earnings</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>`+d['undergrad_population']+`</td>
+                        <td>`+(d['retention_rate']*100)+`%</td>
+                        <td>$`+d['median_debt']+`</td>
+                        <td>$`+d['median_earnings_after_8year']+`</td>
+                    </tr>
+                </tbody>
+            </table>`
     });
+
 
 svg.call(toolTip);
 
@@ -78,6 +115,7 @@ Visual.prototype.init = function(data, group) {
             return (i%rowNum)*dotSpace + 10;
         })
         .attr('cy', function(d, i) {
+            console.log(d);
             return Math.floor(i/rowNum)*dotSpace + 70;
         })
         .on('mouseover', toolTip.show)
@@ -90,12 +128,45 @@ function(row){
     // This callback formats each row of the data
     return {
         name: row['Name'],
-        contorl: row['Control'],
+        predominant_deg: +row['Predominant Degree'],
+        highest_deg: +row['Highest Degree'],
+        control: row['Control'],
         region: row['Region'],
         locale: row['Locale'],
+        admission_rate: +row['Admission Rate'],
         act_median: +row['ACT Median'],
         sat_average: +row['SAT Average'],
-        undergrad_population: +row['Undergrad Population']
+        undergrad_population: +row['Undergrad Population'],
+        percent_white: +row['% White'],
+        percent_black: +row['% Black'],
+        percent_hispanic: +row['% Hispanic'],
+        percent_asian: +row['% Asian'],
+        percent_american_indian: +row['% American Indian'],
+        percent_pacific_islander: +row['% Pacific Islander'],
+        percent_biracial: +row['% Biracial'],
+        percent_nonresident_aliens: +row['% Nonresident Aliens'],
+        percent_part_time: +row['% Part-time Undergrads'],
+        avg_cost: +row['Average Cost'],
+        expenditure_per_student: +row['Expenditure Per Student'],
+        avg_faculty_salary: +row['Average Faculty Salary'],
+        percent_full_time_faculty: +row['% Full-time Faculty'],
+        percent_undergrad_w_pell_grant: +row['% Undergrads with Pell Grant'],
+        completion_rate: +row['Completion Rate 150% time'],
+        retention_rate: +row['Retention Rate (First Time Students)'],
+        percent_undergrads_25plus: +row['% Undergrads 25+ y.o.'],
+        three_year_default_rate: +row['3 Year Default Rate'],
+        median_debt: +row['Median Debt'],
+        median_debt_on_grad: +row['Median Debt on Graduation'],
+        median_debt_on_widthdraw: +row['Median Debt on Withdrawal'],
+        percent_federal_loans: +row['% Federal Loans'],
+        percent_pell_recipients_avg_age_of_entry: +row['% Pell Grant Recipients Average Age of Entry'],
+        avg_family_income: +row['Average Family Income'],
+        median_family_income: +row['Median Family Income'],
+        poverty_rate: +row['Poverty Rate'],
+        num_unemployed_after_8years: +row['Number of Unemployed 8 years after entry'],
+        num_employed_after_8years: +row['Number of Employed 8 years after entry'],
+        mean_earnings_after_8years: +row['Mean Earnings 8 years After Entry'],
+        median_earnings_after_8year: +row['Median Earnings 8 years After Entry']
     }
 },
 function(error, dataset){
@@ -124,6 +195,9 @@ function(error, dataset){
             avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
         }; })
         .entries(dataset);
+    console.log(dataset);
+    console.log(localeData);
+    console.log(regionData);
 
     // Set localColor domain to be set of all unique locales
     var localeDomain = localeData.map(function(d) {
