@@ -18,7 +18,7 @@ Visual.prototype.init = function(data, group) {
     var viz = d3.select(group);
 
     // Sort data by locale
-    data.values.sort(function(a, b) {
+    data.value.values.sort(function(a, b) {
         return d3.descending(a.locale, b.locale);
     });
 
@@ -31,13 +31,26 @@ Visual.prototype.init = function(data, group) {
     // Add label for how many colleges are in that region
     viz.append('text')
         .text(function(d) {
-            return '# of Colleges: ' + d.values.length;
+            return '# of Colleges: ' + d.value.values.length;
         })
-        .attr('transform', 'translate(10, 25)');
+        .attr('transform', 'translate(10, 20)');
+
+    // Add labels for avg info about colleges in that region
+    viz.append('text')
+        .text(function(d) {
+            return 'Avg SAT: ' + Math.round(d.value.avg_sat);
+        })
+        .attr('transform', 'translate(15, 40)');
+
+    viz.append('text')
+        .text(function(d) {
+            return 'Avg Pop: ' + Math.round(d.value.avg_pop);
+        })
+        .attr('transform', 'translate(15, 55)');
 
     // Add dot for each college in region, color coded by locale
     viz.selectAll('.college')
-        .data(data.values)
+        .data(data.value.values)
         .enter()
         .append('circle')
         .attr('fill', function(d) {
@@ -48,7 +61,7 @@ Visual.prototype.init = function(data, group) {
             return (i%11)*11 + 10;
         })
         .attr('cy', function(d, i) {
-            return Math.floor(i/11)*11 + 40;
+            return Math.floor(i/11)*11 + 70;
         });
 
 }
@@ -85,6 +98,11 @@ function(error, dataset){
         .key(function(d) {
             return d.region;
         })
+        .rollup(function(v) { return {
+            values: v,
+            avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
+            avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
+        }; })
         .entries(dataset);
 
     // Set localColor domain to be set of all unique locales
