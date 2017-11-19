@@ -8,7 +8,16 @@ var svgHeight = +svg.attr('height');
 var padding = {t: 20, r: 20, b: 20, l: 20};
 
 // Locale color scale
-var localeColorScale = d3.scaleOrdinal(d3.schemeDark2);
+var localeColorScale = d3.scaleOrdinal(d3.schemeSet2);
+
+// Num of dots in row
+var rowNum = 8;
+
+// Dot radius
+var dotRad = 7;
+
+// Dot spacing
+var dotSpace = dotRad*2 + 1;
 
 function Visual(x) {
     this.x = x;
@@ -19,7 +28,7 @@ Visual.prototype.init = function(data, group) {
 
     // Sort data by locale
     data.value.values.sort(function(a, b) {
-        return d3.descending(a.locale, b.locale);
+        return d3.ascending(a.locale, b.locale);
     });
 
     // Add region label
@@ -56,12 +65,12 @@ Visual.prototype.init = function(data, group) {
         .attr('fill', function(d) {
             return localeColorScale(d.locale);
         })
-        .attr('r', 5)
+        .attr('r', dotRad)
         .attr('cx', function(d, i) {
-            return (i%11)*11 + 10;
+            return (i%rowNum)*dotSpace + 10;
         })
         .attr('cy', function(d, i) {
-            return Math.floor(i/11)*11 + 70;
+            return Math.floor(i/rowNum)*dotSpace + 70;
         });
 
 }
@@ -106,9 +115,12 @@ function(error, dataset){
         .entries(dataset);
 
     // Set localColor domain to be set of all unique locales
-    localeColorScale.domain(localeData.map(function(d) {
+    var localeDomain = localeData.map(function(d) {
         return d.key;
-    }));
+    }).sort(function(a, b) {
+        return d3.ascending(a, b);
+    });
+    localeColorScale.domain(localeDomain);
 
     // Define legend for locale colors
     var localeLegend = d3.legendColor().scale(localeColorScale);
