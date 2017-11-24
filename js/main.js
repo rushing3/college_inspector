@@ -11,7 +11,7 @@ var padding = {t: 20, r: 20, b: 20, l: 20};
 var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
 // Num of dots in row
-var rowNum = 10;
+var rowNum;
 
 // Dot radius
 var dotRad = 4;
@@ -223,7 +223,12 @@ function updateViz(data) {
             return d.key;
         });
 
-    rowNum = Math.floor(((svgWidth - padding.l - padding.r)/data.length)/dotSpace) - 1;
+    if (data.length > 11) {
+        rowNum = Math.floor(((svgWidth - padding.l - padding.r)/11)/dotSpace) - 1;
+    } else {
+        rowNum = Math.floor(((svgWidth - padding.l - padding.r)/data.length)/dotSpace) - 1;
+    }
+
     var uVizEnter = uViz.enter()
         .append('g')
         .attr('class', 'viz');
@@ -257,18 +262,33 @@ function updateViz(data) {
 function onCategoryChanged() {
     var select = d3.select('#catSelect').node();
     var category = select.options[select.selectedIndex].value;
+    var newData;
 
-    // Nest region data
-    var newData = d3.nest()
-        .key(function(d) {
-            return d[category];
-        })
-        .sortKeys(d3.ascending)
-        .rollup(function(v) { return {
-            values: v,
-            avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
-            avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
-        }; })
-        .entries(globalData);
+    if (category == 'no_cat') {
+        // Nest region data
+        newData = d3.nest()
+            .key(function(d) {
+                return 'All Colleges';
+            })
+            .rollup(function(v) { return {
+                values: v,
+                avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
+                avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
+            }; })
+            .entries(globalData);
+    } else {
+        // Nest region data
+        newData = d3.nest()
+            .key(function(d) {
+                return d[category];
+            })
+            .sortKeys(d3.ascending)
+            .rollup(function(v) { return {
+                values: v,
+                avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
+                avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
+            }; })
+            .entries(globalData);
+    }
     updateViz(newData);
 }
