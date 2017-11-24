@@ -210,7 +210,7 @@ function(error, dataset){
 
     // Add legend for locale colors
     svg.append('g')
-        .attr('transform', 'translate(20, 500) scale(0.8, 0.8)')
+        .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
         .call(localeLegend);
 
     updateViz(regionData);
@@ -232,8 +232,16 @@ function updateViz(data) {
         .transition()
         .duration(950)
         .attr('transform', function(d,i) {
-            var tx = (i * ((svgWidth - padding.l - padding.r)/data.length)) + padding.l;
-            var ty = (padding.t);
+            if (data.length > 11) {
+                var tx = ((i%11) * ((svgWidth - padding.l - padding.r)/11)) + padding.l;
+            } else {
+                var tx = ((i%11) * ((svgWidth - padding.l - padding.r)/data.length)) + padding.l;
+            }
+            if (i > 10) {
+                var ty = (padding.t) + svgHeight/2;
+            } else {
+                var ty = (padding.t);
+            }
             return 'translate('+[tx, ty]+')';
         });
 
