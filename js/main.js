@@ -11,10 +11,10 @@ var padding = {t: 20, r: 20, b: 20, l: 20};
 var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
 // Num of dots in row
-var rowNum = 8;
+var rowNum = 10;
 
 // Dot radius
-var dotRad = 7;
+var dotRad = 4;
 
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
@@ -115,7 +115,6 @@ Visual.prototype.init = function(data, group) {
             return (i%rowNum)*dotSpace + 10;
         })
         .attr('cy', function(d, i) {
-            console.log(d);
             return Math.floor(i/rowNum)*dotSpace + 70;
         })
         .on('mouseover', toolTip.show)
@@ -175,6 +174,8 @@ function(error, dataset){
         console.error(error);
         return;
     }
+    // Define dataset globally
+    globalData = dataset;
 
     // Nest locale data
     var localeData = d3.nest()
@@ -195,9 +196,6 @@ function(error, dataset){
             avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
         }; })
         .entries(dataset);
-    console.log(dataset);
-    console.log(localeData);
-    console.log(regionData);
 
     // Set localColor domain to be set of all unique locales
     var localeDomain = localeData.map(function(d) {
@@ -215,21 +213,54 @@ function(error, dataset){
         .attr('transform', 'translate(20, 500) scale(0.8, 0.8)')
         .call(localeLegend);
 
+    updateViz(regionData);
+});
+
+function updateViz(data) {
     // Add a group for each region
-    var regionViz = svg.selectAll('.viz')
-        .data(regionData)
-        .enter()
+    var uViz = svg.selectAll('.viz')
+        .data(data, function(d) {
+            return d.key;
+        });
+
+    rowNum = Math.floor(((svgWidth - padding.l - padding.r)/data.length)/dotSpace) - 1;
+    var uVizEnter = uViz.enter()
         .append('g')
+        .attr('class', 'viz');
+
+    uViz.merge(uVizEnter)
+        .transition()
+        .duration(950)
         .attr('transform', function(d,i) {
-            var tx = (i * ((svgWidth - padding.l - padding.r)/regionData.length)) + padding.l;
+            var tx = (i * ((svgWidth - padding.l - padding.r)/data.length)) + padding.l;
             var ty = (padding.t);
             return 'translate('+[tx, ty]+')';
         });
 
-    // Make and add Viz for each region group
-    regionViz.each(function(d) {
+    // Make and add Visual for each group
+    uVizEnter.each(function(d) {
         rV = new Visual(0);
         rV.init(d, this);
     });
 
-});
+    uViz.exit().remove();
+}
+
+function onCategoryChanged() {
+    var select = d3.select('#catSelect').node();
+    var category = select.options[select.selectedIndex].value;
+
+    // Nest region data
+    var newData = d3.nest()
+        .key(function(d) {
+            return d[category];
+        })
+        .sortKeys(d3.ascending)
+        .rollup(function(v) { return {
+            values: v,
+            avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
+            avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
+        }; })
+        .entries(globalData);
+    updateViz(newData);
+}
