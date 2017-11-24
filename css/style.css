@@ -72,6 +72,15 @@ a {
     left: 0;
 }
 
+/* Style southward tooltips specifically */
+.d3-tip.s:after {
+    color: rgba(0, 0, 0, 0.95);
+    transform: rotate(180deg);
+    margin: -2px 0 0 0;
+    top: 0%;
+    left: 0;
+}
+
 .d3-tip h5{
     font-size: 18px;
     font-weight: 600;

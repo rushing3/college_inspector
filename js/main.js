@@ -14,7 +14,7 @@ var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 var rowNum;
 
 // Dot radius
-var dotRad = 4;
+var dotRad = 6;
 
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
@@ -22,7 +22,6 @@ var dotSpace = dotRad*2 + 1;
 // Make tooltip
 var toolTip = d3.tip()
     .attr("class", "d3-tip")
-    .offset([-12, 0])
     .html(function(d) {
         return "<h5>"+d['name']+"</h5>" +
             `<table>
@@ -117,7 +116,24 @@ Visual.prototype.init = function(data, group) {
         .attr('cy', function(d, i) {
             return Math.floor(i/rowNum)*dotSpace + 70;
         })
-        .on('mouseover', toolTip.show)
+        .on('mouseover', function(d, i) {
+            t = d3.select(this.parentNode).attr('transform');
+            t = t.split('(')[1].split(',')[0];
+            t = parseFloat(t);
+            cy = d3.select(this).attr('cy');
+            cx = d3.select(this).attr('cx');
+            absx = parseFloat(cx) + t;
+            if(cy < 100 && absx < 200) {
+                toolTip.direction('se');
+            } else if (cy < 100) {
+                toolTip.direction('s');
+            } else if (absx < 200) {
+                toolTip.direction('ne');
+            } else {
+                toolTip.direction('n');
+            }
+            toolTip.show(d, i);
+        })
         .on('mouseout', toolTip.hide);
 
 }
