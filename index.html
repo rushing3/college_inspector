@@ -22,6 +22,15 @@
                 <option value="highest_deg">Highest Degree</option>
             </select>
         </div>
+        <div style="position: absolute; left: 1440px; top: 350px" hidden="true">
+            <div>
+                <label for="legendSelect">Legend Value:</label>
+            </div>
+            <select class="custom-select small" id="legSelect" onchange="onCategoryChanged()">
+                <option selected value="mean_earnings_after_8years">Mean Earnings After 8 years</option>
+                <option value="median_debt">Median Debt</option>
+            </select>
+        </div>
         <svg width="1420" height="720" style="border: 1px solid #777;">
         </svg>
     </div>

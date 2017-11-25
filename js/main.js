@@ -7,8 +7,8 @@ var svgHeight = +svg.attr('height');
 // Define a padding object
 var padding = {t: 20, r: 20, b: 20, l: 20};
 
-// Locale color scale
-var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
+// Legend color scale
+var legendColorScale = d3.scaleSequential(d3.interpolateWarm);
 
 // Num of dots in row
 var rowNum;
@@ -54,7 +54,7 @@ var toolTip = d3.tip()
                         <td>`+d['undergrad_population']+`</td>
                         <td>`+(d['retention_rate']*100).toFixed(2)+`%</td>
                         <td>$`+Math.round(d['median_debt'])+`</td>
-                        <td>$`+Math.round(d['median_earnings_after_8year'])+`</td>
+                        <td>$`+Math.round(d['mean_earnings_after_8years'])+`</td>
                     </tr>
                 </tbody>
             </table>`
@@ -67,12 +67,12 @@ function Visual(x) {
     this.x = x;
 }
 
-Visual.prototype.init = function(data, group) {
+Visual.prototype.init = function(data, group, legend_category) {
     var viz = d3.select(group);
 
-    // Sort data by locale
+    // Sort data by legend
     data.value.values.sort(function(a, b) {
-        return d3.ascending(a.locale, b.locale);
+        return d3.descending(a[legend_category], b[legend_category]);
     });
 
     // Add region label
@@ -101,13 +101,14 @@ Visual.prototype.init = function(data, group) {
         })
         .attr('transform', 'translate(15, 55)');
 
-    // Add dot for each college in region, color coded by locale
+    // Add dot for each college in region, color coded by legend
     viz.selectAll('.college')
         .data(data.value.values)
         .enter()
+        .filter(function(d) { return d[legend_category] != 0;})
         .append('circle')
         .attr('fill', function(d) {
-            return localeColorScale(d.locale);
+            return legendColorScale(d[legend_category]);
         })
         .attr('r', dotRad)
         .attr('cx', function(d, i) {
@@ -193,12 +194,23 @@ function(error, dataset){
     // Define dataset globally
     globalData = dataset;
 
-    // Nest locale data
-    var localeData = d3.nest()
+    // Nest legend data
+    legendData = d3.nest()
         .key(function(d) {
-            return d.locale;
+            return d.mean_earnings_after_8years;
         })
-        .entries(dataset);
+        .entries(globalData);
+
+    // Set Color domain
+    var legendDomain = legendData.map(function(d) {
+        return d.key;
+    }).sort(function(a, b) {
+        return d3.ascending(a, b);
+    });
+    legendColorScale.domain(legendDomain);
+
+    // Define legend for legend colors
+    var legend = d3.legendColor().scale(legendColorScale);
 
     // Nest region data
     var regionData = d3.nest()
@@ -213,26 +225,21 @@ function(error, dataset){
         }; })
         .entries(dataset);
 
-    // Set localColor domain to be set of all unique locales
-    var localeDomain = localeData.map(function(d) {
-        return d.key;
-    }).sort(function(a, b) {
-        return d3.ascending(a, b);
-    });
-    localeColorScale.domain(localeDomain);
-
-    // Define legend for locale colors
-    var localeLegend = d3.legendColor().scale(localeColorScale);
-
-    // Add legend for locale colors
-    svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
-        .call(localeLegend);
-
-    updateViz(regionData);
+    updateLegend(legend);
+    updateViz(regionData, 'mean_earnings_after_8years');
 });
 
-function updateViz(data) {
+function updateLegend(legend) {
+    svg.select('.legend').remove();
+
+    // Add legend
+    svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
+        .call(legend);
+}
+
+function updateViz(data, legend_category) {
     // Add a group for each region
     var uViz = svg.selectAll('.viz')
         .data(data, function(d) {
@@ -269,13 +276,36 @@ function updateViz(data) {
     // Make and add Visual for each group
     uVizEnter.each(function(d) {
         rV = new Visual(0);
-        rV.init(d, this);
+        rV.init(d, this, legend_category);
     });
 
     uViz.exit().remove();
 }
 
 function onCategoryChanged() {
+    var legend_select = d3.select('#legSelect').node();
+    var legend_category = legend_select.options[legend_select.selectedIndex].value;
+
+    // Nest legend data
+    legendData = d3.nest()
+        .key(function(d) {
+            return d[legend_category];
+        })
+        .entries(globalData);
+
+    // Set Color domain
+    var legendDomain = legendData.map(function(d) {
+        return d.key;
+    }).sort(function(a, b) {
+        return d3.ascending(a, b);
+    });
+    legendColorScale.domain(legendDomain);
+
+    // Define legend for legend colors
+    var legend = d3.legendColor().scale(legendColorScale);
+
+    updateLegend(legend);
+
     var select = d3.select('#catSelect').node();
     var category = select.options[select.selectedIndex].value;
     var newData;
@@ -306,5 +336,5 @@ function onCategoryChanged() {
             }; })
             .entries(globalData);
     }
-    updateViz(newData);
+    updateViz(newData, legend_category);
 }
