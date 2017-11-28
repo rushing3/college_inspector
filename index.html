@@ -9,17 +9,27 @@
     </head>
     <body>
     <div id="main">
-        <div style="position: absolute; left: 1440px;">
+        <div style="position: absolute; top: 740px;">
             <div>
-                <label for="categorySelect">Sort By:</label>
+                <label for="xAxisSelect">X-Axis:</label>
             </div>
-            <select class="custom-select small" id="catSelect" onchange="onCategoryChanged()">
-                <option value="no_cat">None</option>
-                <option selected value="region">Region</option>
-                <option value="locale">Locale</option>
-                <option value="control">Control</option>
+            <select class="custom-select small" id="xSelect" onchange="onXChanged()">
+                <option selected value="sat_average">Average SAT</option>
                 <option value="act_median">Median ACT</option>
-                <option value="highest_deg">Highest Degree</option>
+                <option value="admission_rate">Admission Rate</option>
+                <option value="avg_cost">Average Cost</option>
+                <option value="median_debt">Median Debt</option>
+                <option value="undergrad_population">Undergrad Population</option>
+            </select>
+        </div>
+        <div style="position: absolute; top: 740px; left: 240px;">
+            <div>
+                <label for="yAxisSelect">Y-Axis:</label>
+            </div>
+            <select class="custom-select small" id="ySelect" onchange="onYChanged()">
+                <option selected value="mean_earnings_after_8years">Mean Earnings 8 years after Entry</option>
+                <option value="avg_family_income">Average Family Income</option>
+                <option value="retention_rate">Retention Rate</option>
             </select>
         </div>
         <svg width="1420" height="720" style="border: 1px solid #777;">

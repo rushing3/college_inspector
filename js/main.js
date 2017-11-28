@@ -30,28 +30,6 @@ var yScale = d3.scaleLinear().range([spHeight, 0]);
 // Dot radius
 var dotRad = 3;
 
-// Values that can be used on scatter plot
-var columns = [
-        'control',
-        'admission_rate',
-        'act_median',
-        'sat_average',
-        'undergrad_population',
-        'percent_white',
-        'percent_black',
-        'percent_hispanic',
-        'percent_asian',
-        'percent_american_indian',
-        'percent_pacific_islander',
-        'percent_biracial',
-        'avg_cost',
-        'median_debt',
-        'median_debt_on_grad',
-        'median_debt_on_widthdraw',
-        'mean_earnings_after_8years',
-        'median_earnings_after_8year'
-]
-
 // Num of dots in row
 var rowNum;
 
@@ -199,9 +177,7 @@ function(error, dataset){
         return;
     }
     // Define dataset globally
-    globalData = dataset.filter(function(d) {
-        return (d.sat_average != 0 && d.mean_earnings_after_8years != 0);
-    });
+    globalData = dataset;
 
     // Nest region data
     var regionData = d3.nest()
@@ -246,14 +222,6 @@ function(error, dataset){
             legendCells.classed('hidden', false);
         });
 
-    domainMap = {};
-
-    columns.forEach(function(column) {
-        domainMap[column] = d3.extent(globalData, function(data_element){
-            return data_element[column];
-        });
-    });
-
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
@@ -261,9 +229,21 @@ function(error, dataset){
 });
 
 function updateViz(data) {
+    data = data.filter(function(d) {
+        return (d[chartScales.x] != 0 && d[chartScales.y] != 0);
+    });
+
+    xDomain = d3.extent(data, function(data_element){
+        return data_element[chartScales.x];
+    });
+
+    yDomain = d3.extent(data, function(data_element){
+        return data_element[chartScales.y];
+    });
+
     // Update the scales based on new data attributes
-    xScale.domain(domainMap[chartScales.x]).nice();
-    yScale.domain(domainMap[chartScales.y]).nice();
+    xScale.domain(xDomain).nice();
+    yScale.domain(yDomain).nice();
 
     // Update axises
     spXAxis.transition()
@@ -285,6 +265,7 @@ function updateViz(data) {
         .attr('class', 'dot')
         .on('mouseover', function(d, i) {
             t = d3.select(this).attr('transform');
+            console.log(t);
             t = t.split('(')[1].split(',');
             x = parseFloat(t[0]);
             y = parseFloat(t[1]);
@@ -323,36 +304,20 @@ function updateViz(data) {
     dots.exit().remove();
 }
 
-function onCategoryChanged() {
-    var select = d3.select('#catSelect').node();
-    var category = select.options[select.selectedIndex].value;
-    var newData;
+function onXChanged() {
+    var select = d3.select('#xSelect').node();
+    var x = select.options[select.selectedIndex].value;
 
-    if (category == 'no_cat') {
-        // Nest region data
-        newData = d3.nest()
-            .key(function(d) {
-                return 'All Colleges';
-            })
-            .rollup(function(v) { return {
-                values: v,
-                avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
-                avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
-            }; })
-            .entries(globalData);
-    } else {
-        // Nest region data
-        newData = d3.nest()
-            .key(function(d) {
-                return d[category];
-            })
-            .sortKeys(d3.ascending)
-            .rollup(function(v) { return {
-                values: v,
-                avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
-                avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
-            }; })
-            .entries(globalData);
-    }
-    updateViz(newData);
+    chartScales.x = x;
+
+    updateViz(globalData);
+}
+
+function onYChanged() {
+    var select = d3.select('#ySelect').node();
+    var y = select.options[select.selectedIndex].value;
+
+    chartScales.y = y;
+
+    updateViz(globalData);
 }
