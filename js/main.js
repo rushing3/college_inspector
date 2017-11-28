@@ -397,9 +397,7 @@ function calcLinear(data, x, y, minX, minY){
     // y-intercept = b = (e - f) / n
     var b = (e - f) / n;
 
-    // Print the equation below the chart
-    document.getElementsByClassName("equation")[0].innerHTML = "y = " + m + "x + " + b;
-    document.getElementsByClassName("equation")[1].innerHTML = "x = ( y - " + b + " ) / " + m;
+    // TODO print the r2 value
 
     // return an object of two points
     // each point is an object with an x and y coordinate
