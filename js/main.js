@@ -27,6 +27,9 @@ var regionColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
 
+// Filter term
+var filterTerm = '';
+
 // Dot radius
 var dotRad = 3;
 
@@ -225,11 +228,11 @@ function(error, dataset){
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
-    updateViz(globalData);
+    updateViz();
 });
 
-function updateViz(data) {
-    data = data.filter(function(d) {
+function updateViz() {
+    data = globalData.filter(function(d) {
         return (d[chartScales.x] != 0 && d[chartScales.y] != 0);
     });
 
@@ -255,12 +258,13 @@ function updateViz(data) {
         .call(d3.axisLeft(yScale));
 
     // Add a group for each region
-    var dots = scatterPlot.selectAll('.dot').data(data);
+    var dots = scatterPlot.selectAll('.dot')
+        .data(data.filter(function(d) {
+            return d.name.indexOf(filterTerm) != -1;
+    }));
 
+    console.log(filterTerm);
     var dotsEnter = dots.enter()
-        .filter(function(d) {
-            return d.name.indexOf('') != -1;
-        })
         .append('g')
         .attr('class', 'dot')
         .on('mouseover', function(d, i) {
@@ -309,7 +313,7 @@ function onXChanged() {
 
     chartScales.x = x;
 
-    updateViz(globalData);
+    updateViz();
 }
 
 function onYChanged() {
@@ -318,5 +322,11 @@ function onYChanged() {
 
     chartScales.y = y;
 
-    updateViz(globalData);
+    updateViz();
+}
+
+function onFilterTermChanged(newFilterTerm) {
+    filterTerm = newFilterTerm;
+
+    updateViz();
 }
