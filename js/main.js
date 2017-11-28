@@ -5,16 +5,55 @@ var svgWidth = +svg.attr('width');
 var svgHeight = +svg.attr('height');
 
 // Define a padding object
-var padding = {t: 20, r: 20, b: 20, l: 20};
+var padding = {t: 40, r: 40, b: 40, l: 50};
+
+// ScatterPlot dimensions
+var spWidth = svgWidth*(2/3) - padding.l;
+var spHeight = svgHeight - padding.t - padding.b;
+
+// Create group for ScatterPlot
+var scatterPlot = svg.append('g')
+    .attr('transform', 'translate('+[padding.l, padding.t]+')');
+
+var spXAxis = scatterPlot.append('g')
+    .attr('transform', 'translate('+[0, spHeight]+')');
+
+var spYAxis = scatterPlot.append('g');
 
 // Locale color scale
 var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
-// Num of dots in row
-var rowNum;
+// Create scales
+var xScale = d3.scaleLinear().range([0, spWidth]);
+var yScale = d3.scaleLinear().range([spHeight, 0]);
 
 // Dot radius
-var dotRad = 6;
+var dotRad = 4;
+
+// Values that can be used on scatter plot
+var columns = [
+        'control',
+        'admission_rate',
+        'act_median',
+        'sat_average',
+        'undergrad_population',
+        'percent_white',
+        'percent_black',
+        'percent_hispanic',
+        'percent_asian',
+        'percent_american_indian',
+        'percent_pacific_islander',
+        'percent_biracial',
+        'avg_cost',
+        'median_debt',
+        'median_debt_on_grad',
+        'median_debt_on_widthdraw',
+        'mean_earnings_after_8years',
+        'median_earnings_after_8year'
+]
+
+// Num of dots in row
+var rowNum;
 
 // Dot spacing
 var dotSpace = dotRad*2 + 1;
@@ -69,37 +108,6 @@ function Visual(x) {
 
 Visual.prototype.init = function(data, group) {
     var viz = d3.select(group);
-
-    // Sort data by locale
-    data.value.values.sort(function(a, b) {
-        return d3.ascending(a.locale, b.locale);
-    });
-
-    // Add region label
-    viz.append('text')
-        .text(function(d) {
-            return d.key;
-        });
-
-    // Add label for how many colleges are in that region
-    viz.append('text')
-        .text(function(d) {
-            return '# of Colleges: ' + d.value.values.length;
-        })
-        .attr('transform', 'translate(10, 20)');
-
-    // Add labels for avg info about colleges in that region
-    viz.append('text')
-        .text(function(d) {
-            return 'Avg SAT: ' + Math.round(d.value.avg_sat);
-        })
-        .attr('transform', 'translate(15, 40)');
-
-    viz.append('text')
-        .text(function(d) {
-            return 'Avg Pop: ' + Math.round(d.value.avg_pop);
-        })
-        .attr('transform', 'translate(15, 55)');
 
     // Add dot for each college in region, color coded by locale
     viz.selectAll('.college')
@@ -200,19 +208,6 @@ function(error, dataset){
         })
         .entries(dataset);
 
-    // Nest region data
-    var regionData = d3.nest()
-        .key(function(d) {
-            return d.region;
-        })
-        .sortKeys(d3.ascending)
-        .rollup(function(v) { return {
-            values: v,
-            avg_sat: d3.mean(v, function(d) { return d.sat_average; }),
-            avg_pop: d3.mean(v, function(d) { return d.undergrad_population; })
-        }; })
-        .entries(dataset);
-
     // Set localColor domain to be set of all unique locales
     var localeDomain = localeData.map(function(d) {
         return d.key;
@@ -229,50 +224,78 @@ function(error, dataset){
         .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
         .call(localeLegend);
 
-    updateViz(regionData);
+    domainMap = {};
+
+    columns.forEach(function(column) {
+        domainMap[column] = d3.extent(dataset, function(data_element){
+            return data_element[column];
+        });
+    });
+
+    // Create global object called chartScales to keep state
+    chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
+
+    updateViz(dataset);
 });
 
 function updateViz(data) {
+    // Update the scales based on new data attributes
+    xScale.domain(domainMap[chartScales.x]).nice();
+    yScale.domain(domainMap[chartScales.y]).nice();
+
+    // Update axises
+    spXAxis.transition()
+        .duration(750)
+        .call(d3.axisBottom(xScale));
+
+    spYAxis.transition()
+        .duration(750)
+        .call(d3.axisLeft(yScale));
+
     // Add a group for each region
-    var uViz = svg.selectAll('.viz')
-        .data(data, function(d) {
-            return d.key;
-        });
+    var dots = scatterPlot.selectAll('.dot').data(data);
 
-    if (data.length > 11) {
-        rowNum = Math.floor(((svgWidth - padding.l - padding.r)/11)/dotSpace) - 1;
-    } else {
-        rowNum = Math.floor(((svgWidth - padding.l - padding.r)/data.length)/dotSpace) - 1;
-    }
-
-    var uVizEnter = uViz.enter()
+    var dotsEnter = dots.enter()
         .append('g')
-        .attr('class', 'viz');
+        .attr('class', 'dot')
+        .on('mouseover', function(d, i) {
+            t = d3.select(this).attr('transform');
+            t = t.split('(')[1].split(',');
+            x = parseFloat(t[0]);
+            y = parseFloat(t[1]);
+            if(y < 100 && x < 200) {
+                toolTip.direction('se');
+            } else if (y < 100) {
+                toolTip.direction('s');
+            } else if (x < 200) {
+                toolTip.direction('ne');
+            } else {
+                toolTip.direction('n');
+            }
+            toolTip.show(d, i);
+        })
+        .on('mouseout', toolTip.hide);
 
-    uViz.merge(uVizEnter)
+    dotsEnter.append('circle')
+        .attr('r', dotRad);
+
+    dots.merge(dotsEnter)
         .transition()
-        .duration(950)
-        .attr('transform', function(d,i) {
-            if (data.length > 11) {
-                var tx = ((i%11) * ((svgWidth - padding.l - padding.r)/11)) + padding.l;
-            } else {
-                var tx = ((i%11) * ((svgWidth - padding.l - padding.r)/data.length)) + padding.l;
-            }
-            if (i > 10) {
-                var ty = (padding.t) + svgHeight/2;
-            } else {
-                var ty = (padding.t);
-            }
+        .duration(750)
+
+    dots.merge(dotsEnter)
+        .transition()
+        .duration(750)
+        .attr('fill', function(d) {
+            return localeColorScale(d.locale);
+        })
+        .attr('transform', function(d) {
+            var tx = xScale(d[chartScales.x]);
+            var ty = yScale(d[chartScales.y]);
             return 'translate('+[tx, ty]+')';
         });
 
-    // Make and add Visual for each group
-    uVizEnter.each(function(d) {
-        rV = new Visual(0);
-        rV.init(d, this);
-    });
-
-    uViz.exit().remove();
+    dots.exit().remove();
 }
 
 function onCategoryChanged() {
