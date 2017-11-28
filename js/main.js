@@ -20,15 +20,15 @@ var spXAxis = scatterPlot.append('g')
 
 var spYAxis = scatterPlot.append('g');
 
-// Locale color scale
-var localeColorScale = d3.scaleOrdinal(d3.schemeCategory20);
+// Region color scale
+var regionColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
 
 // Dot radius
-var dotRad = 4;
+var dotRad = 3;
 
 // Values that can be used on scatter plot
 var columns = [
@@ -109,13 +109,13 @@ function Visual(x) {
 Visual.prototype.init = function(data, group) {
     var viz = d3.select(group);
 
-    // Add dot for each college in region, color coded by locale
+    // Add dot for each college in region, color coded by region
     viz.selectAll('.college')
         .data(data.value.values)
         .enter()
         .append('circle')
         .attr('fill', function(d) {
-            return localeColorScale(d.locale);
+            return regionColorScale(d.region);
         })
         .attr('r', dotRad)
         .attr('cx', function(d, i) {
@@ -199,35 +199,57 @@ function(error, dataset){
         return;
     }
     // Define dataset globally
-    globalData = dataset;
+    globalData = dataset.filter(function(d) {
+        return (d.sat_average != 0 && d.mean_earnings_after_8years != 0);
+    });
 
-    // Nest locale data
-    var localeData = d3.nest()
+    // Nest region data
+    var regionData = d3.nest()
         .key(function(d) {
-            return d.locale;
+            return d.region;
         })
-        .entries(dataset);
+        .entries(globalData);
 
-    // Set localColor domain to be set of all unique locales
-    var localeDomain = localeData.map(function(d) {
+    // Set localColor domain to be set of all unique regions
+    var regionDomain = regionData.map(function(d) {
         return d.key;
     }).sort(function(a, b) {
         return d3.ascending(a, b);
     });
-    localeColorScale.domain(localeDomain);
+    regionColorScale.domain(regionDomain);
 
-    // Define legend for locale colors
-    var localeLegend = d3.legendColor().scale(localeColorScale);
+    // Define legend for region colors
+    var regionLegend = d3.legendColor().scale(regionColorScale);
 
-    // Add legend for locale colors
+    // Add legend for region colors
     svg.append('g')
         .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
-        .call(localeLegend);
+        .call(regionLegend);
+
+    legendCells = svg.selectAll('.cell')
+        .on('mouseover', function(d){ // Add hover start event binding
+            // Select the hovered g.dot
+            var hovered = d3.select(this);
+            text = hovered.select('text').text();
+            scatterPlot.selectAll('.dot').classed('hidden', function(d) {
+                return d.region != text;
+            });
+            // Show the text, otherwise hidden
+            legendCells.classed('hidden', function(d) {
+                return d != text;
+            });
+        })
+        .on('mouseout', function(d){ // Add hover end event binding
+            // Select the hovered g.dot
+            var hovered = d3.select(this);
+            scatterPlot.selectAll('.dot').classed('hidden', false);
+            legendCells.classed('hidden', false);
+        });
 
     domainMap = {};
 
     columns.forEach(function(column) {
-        domainMap[column] = d3.extent(dataset, function(data_element){
+        domainMap[column] = d3.extent(globalData, function(data_element){
             return data_element[column];
         });
     });
@@ -235,7 +257,7 @@ function(error, dataset){
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
-    updateViz(dataset);
+    updateViz(globalData);
 });
 
 function updateViz(data) {
@@ -256,6 +278,9 @@ function updateViz(data) {
     var dots = scatterPlot.selectAll('.dot').data(data);
 
     var dotsEnter = dots.enter()
+        .filter(function(d) {
+            return d.name.indexOf('') != -1;
+        })
         .append('g')
         .attr('class', 'dot')
         .on('mouseover', function(d, i) {
@@ -287,7 +312,7 @@ function updateViz(data) {
         .transition()
         .duration(750)
         .attr('fill', function(d) {
-            return localeColorScale(d.locale);
+            return regionColorScale(d.region);
         })
         .attr('transform', function(d) {
             var tx = xScale(d[chartScales.x]);
