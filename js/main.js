@@ -5,7 +5,7 @@ var svgWidth = +svg.attr('width');
 var svgHeight = +svg.attr('height');
 
 // Define a padding object
-var padding = {t: 40, r: 40, b: 40, l: 50};
+var padding = {t: 90, r: 40, b: 40, l: 50};
 
 // ScatterPlot dimensions
 var spWidth = svgWidth*(2/3) - padding.l;
@@ -265,7 +265,6 @@ function updateViz(data) {
         .attr('class', 'dot')
         .on('mouseover', function(d, i) {
             t = d3.select(this).attr('transform');
-            console.log(t);
             t = t.split('(')[1].split(',');
             x = parseFloat(t[0]);
             y = parseFloat(t[1]);
