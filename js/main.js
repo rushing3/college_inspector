@@ -21,7 +21,7 @@ var spXAxis = scatterPlot.append('g')
 var spYAxis = scatterPlot.append('g');
 
 // Region color scale
-var regionColorScale = d3.scaleOrdinal(d3.schemeCategory20);
+var regionColorScale = d3.scaleOrdinal(d3.schemeCategory10);
 
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
@@ -371,7 +371,8 @@ function updateViz() {
         .transition()
         .delay(1000)
         .duration(500)
-        .attr('d', regression(trendlineData));
+        .attr('d', regression(trendlineData))
+        .attr('transform', 'translate(' + [padding.l, padding.t] +')');
 }
 
 function onXChanged() {
