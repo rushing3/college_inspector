@@ -40,7 +40,7 @@ a {
 }
 
 .hidden {
-    fill-opacity: .2;
+    fill-opacity: .1;
 }
 
 .d3-tip {

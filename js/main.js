@@ -20,8 +20,18 @@ var spXAxis = scatterPlot.append('g')
 
 var spYAxis = scatterPlot.append('g');
 
+// Colors for colorscale range
+var customColors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
+                    "#990099", "#0099c6", "#dd4477", "#66aa00",
+                    "#b82e2e", "#316395","#994499", "#22aa99",
+                    "#aaaa11", "#6633cc", "#e67300", "#8b0707",
+                    "#651067", "#329262", "#5574a6", "#3b3eac"];
+
+
 // Region color scale
-var regionColorScale = d3.scaleOrdinal(d3.schemeCategory10);
+//var regionColorScale = d3.scaleOrdinal(d3.schemeDark2);
+var regionColorScale = d3.scaleOrdinal();
+regionColorScale.range(customColors);
 
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
@@ -77,7 +87,7 @@ var toolTip = d3.tip()
                         <td>`+d['undergrad_population']+`</td>
                         <td>`+(d['retention_rate']*100).toFixed(2)+`%</td>
                         <td>$`+Math.round(d['median_debt'])+`</td>
-                        <td>$`+Math.round(d['median_earnings_after_8year'])+`</td>
+                        <td>$`+Math.round(d['median_earnings_after_8years'])+`</td>
                     </tr>
                 </tbody>
             </table>`
@@ -312,7 +322,7 @@ function updateViz() {
                                     <td>`+dataElement['undergrad_population']+`</td>
                                     <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
                                     <td>$`+Math.round(dataElement['median_debt'])+`</td>
-                                    <td>$`+Math.round(dataElement['median_earnings_after_8year'])+`</td>
+                                    <td>$`+Math.round(dataElement['median_earnings_after_8years'])+`</td>
                                 </tr>
                             </tbody>
                         </table>`
