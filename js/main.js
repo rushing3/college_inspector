@@ -242,7 +242,7 @@ function(error, dataset){
 
 function updateViz() {
     data = globalData.filter(function(d) {
-        return (d[chartScales.x] != 0 && d[chartScales.y] != 0);
+        return (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
     });
 
     xDomain = d3.extent(data, function(data_element){
