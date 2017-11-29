@@ -5,7 +5,7 @@ var svgWidth = +svg.attr('width');
 var svgHeight = +svg.attr('height');
 
 // Define a padding object
-var padding = {t: 90, r: 40, b: 40, l: 50};
+var padding = {t: 90, r: 40, b: 40, l: 55};
 
 // ScatterPlot dimensions
 var spWidth = svgWidth*(2/3) - padding.l;
@@ -316,51 +316,62 @@ function updateViz() {
                         return "5px";
                     })
                     .html(function(d) {
-                        return "<h5>"+dataElement['name']+"</h5>" +
-                            `<table>
-                                <thead>
-                                    <tr>
-                                        <td>Median ACT</td>
-                                        <td>Average SAT</td>
-                                        <td>Admission Rate</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>`+dataElement['act_median']+`</td>
-                                        <td>`+(dataElement['admission_rate']*100).toFixed(2)+`%</td>
-                                        <td>$`+Math.round(dataElement['avg_cost'])+`</td>
-                                    </tr>
-                                </tbody>
-                                <thead>
-                                    <tr>
-                                        <td>Median Debt</td>
-                                        <td>Mean Earnings</td>
-                                        <td>Avg Cost</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>$`+Math.round(dataElement['median_debt'])+`</td>
-                                        <td>$`+Math.round(dataElement['median_earnings_after_8years'])+`</td>
-                                        <td>$`+Math.round(dataElement['avg_cost'])+`</td>
-                                    </tr>
-                                </tbody>
-                                <thead>
-                                    <tr>
-                                        <td>Undergrad Population</td>
-                                        <td>Retention Rate</td>
-                                        <td>% Part-Time</td>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>`+dataElement['undergrad_population']+`</td>
-                                        <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
-                                        <td>`+(dataElement['percent_part_time']*100).toFixed(2)+`%</td>
-                                    </tr>
-                                </tbody>
-                            </table>`
+                            return `<div class="table">
+                                <div class="row">
+                                    <div class="column">
+                                        <h5>`+dataElement['name']+`</h5>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <td>Median ACT</td>
+                                                    <td>Average SAT</td>
+                                                    <td>Admission Rate</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>`+dataElement['act_median']+`</td>
+                                                    <td>`+(dataElement['admission_rate']*100).toFixed(2)+`%</td>
+                                                    <td>$`+Math.round(dataElement['avg_cost'])+`</td>
+                                                </tr>
+                                            </tbody>
+                                            <thead>
+                                                <tr>
+                                                    <td>Median Debt</td>
+                                                    <td>Mean Earnings</td>
+                                                    <td>Avg Cost</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>$`+Math.round(dataElement['median_debt'])+`</td>
+                                                    <td>$`+Math.round(dataElement['median_earnings_after_8years'])+`</td>
+                                                    <td>$`+Math.round(dataElement['avg_cost'])+`</td>
+                                                </tr>
+                                            </tbody>
+                                            <thead>
+                                                <tr>
+                                                    <td>Undergrad Population</td>
+                                                    <td>Retention Rate</td>
+                                                    <td>% Part-Time</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>`+dataElement['undergrad_population']+`</td>
+                                                    <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
+                                                    <td>`+(dataElement['percent_part_time']*100).toFixed(2)+`%</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="column">
+                                        <h5>Demographics</h5>
+                                        <svg id=`+dataElement['name']+` width="320" height="250" style="border: 1px solid #777;">
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>`
                     })
                     .on('click', function(d) {
                         delete currentCards[dataElement['name']];
