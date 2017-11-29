@@ -27,6 +27,9 @@ var regionColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
 
+// Regression line
+var regression = d3.line();
+
 // Filter term
 var filterTerm = '';
 
@@ -124,7 +127,7 @@ Visual.prototype.init = function(data, group) {
         })
         .on('mouseout', toolTip.hide);
 
-}
+};
 
 d3.csv('./data/colleges.csv',
 function(row){
@@ -204,6 +207,12 @@ function(error, dataset){
         .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
         .call(regionLegend);
 
+    svg.append('path')
+        .attr('class', 'trendline')
+        .attr('stroke-width', 1)
+        .attr('stroke', 'black')
+        .style('fill', 'none');
+
     legendCells = svg.selectAll('.cell')
         .on('mouseover', function(d){ // Add hover start event binding
             // Select the hovered g.dot
@@ -262,7 +271,6 @@ function updateViz() {
             return d.name.indexOf(filterTerm) != -1;
     }));
 
-    console.log(filterTerm);
     var dotsEnter = dots.enter()
         .append('g')
         .attr('class', 'dot')
@@ -350,6 +358,20 @@ function updateViz() {
         });
 
     dots.exit().remove();
+
+    var records = getVals(chartScales.x, chartScales.y);
+
+    regression.x(function (d) { return xScale(d.xVal); } )
+        .y(function (d) { return yScale(d.yVal); } );
+
+    var coefficients = leastSquares(records.x, records.y);
+    var trendlineData = calculateLineData(coefficients, d3.extent(records.x), 500)
+
+    var trendline = d3.selectAll('.trendline')
+        .transition()
+        .delay(1000)
+        .duration(500)
+        .attr('d', regression(trendlineData));
 }
 
 function onXChanged() {
@@ -376,85 +398,56 @@ function onFilterTermChanged(newFilterTerm) {
     updateViz();
 }
 
-// Calculate a linear regression from the data
+// returns slope, intercept and r-square of the line
+//Pulled from http://bl.ocks.org/benvandyke/8459843
+function leastSquares(xSeries, ySeries) {
+    var reduceSumFunc = function(prev, cur) { return prev + cur; };
 
-// Takes 5 parameters:
-// (1) Your data
-// (2) The column of data plotted on your x-axis
-// (3) The column of data plotted on your y-axis
-// (4) The minimum value of your x-axis
-// (5) The minimum value of your y-axis
+    var xBar = xSeries.reduce(reduceSumFunc) * 1.0 / xSeries.length;
+    var yBar = ySeries.reduce(reduceSumFunc) * 1.0 / ySeries.length;
 
-// Returns an object with two points, where each point is an object with an x and y coordinate
+    var ssXX = xSeries.map(function(d) { return Math.pow(d - xBar, 2); })
+        .reduce(reduceSumFunc);
 
-function calcLinear(data, x, y, minX, minY){
-    /////////
-    //SLOPE//
-    /////////
+    var ssYY = ySeries.map(function(d) { return Math.pow(d - yBar, 2); })
+        .reduce(reduceSumFunc);
 
-    // Let n = the number of data points
-    var n = data.length;
+    var ssXY = xSeries.map(function(d, i) { return (d - xBar) * (ySeries[i] - yBar); })
+        .reduce(reduceSumFunc);
 
-    // Get just the points
-    var pts = [];
-    data.forEach(function(d,i){
-        var obj = {};
-        obj.x = d[x];
-        obj.y = d[y];
-        obj.mult = obj.x*obj.y;
-        pts.push(obj);
-    });
+    var slope = ssXY / ssXX;
+    var intercept = yBar - (xBar * slope);
+    var rSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
 
-    // Let a equal n times the summation of all x-values multiplied by their corresponding y-values
-    // Let b equal the sum of all x-values times the sum of all y-values
-    // Let c equal n times the sum of all squared x-values
-    // Let d equal the squared sum of all x-values
-    var sum = 0;
-    var xSum = 0;
-    var ySum = 0;
-    var sumSq = 0;
-    pts.forEach(function(pt){
-        sum = sum + pt.mult;
-        xSum = xSum + pt.x;
-        ySum = ySum + pt.y;
-        sumSq = sumSq + (pt.x * pt.x);
-    });
-    var a = sum * n;
-    var b = xSum * ySum;
-    var c = sumSq * n;
-    var d = xSum * xSum;
+    return [slope, intercept, rSquare];
+}
 
-    // Plug the values that you calculated for a, b, c, and d into the following equation to calculate the slope
-    // slope = m = (a - b) / (c - d)
-    var m = (a - b) / (c - d);
-
-    /////////////
-    //INTERCEPT//
-    /////////////
-
-    // Let e equal the sum of all y-values
-    var e = ySum;
-
-    // Let f equal the slope times the sum of all x-values
-    var f = m * xSum;
-
-    // Plug the values you have calculated for e and f into the following equation for the y-intercept
-    // y-intercept = b = (e - f) / n
-    var b = (e - f) / n;
-
-    // TODO print the r2 value
-
-    // return an object of two points
-    // each point is an object with an x and y coordinate
-    return {
-        ptA : {
-            x: minX,
-            y: m * minX + b
-        },
-        ptB : {
-            y: minY,
-            x: (minY - b) / m
-        }
+function calculateLineData(leastSquares,xRange,iterations){
+    var returnData = [];
+    for(var i=0; i<iterations; i++){
+        var randomX = randomFloatBetween(xRange[0],xRange[1]);
+        returnData.push({
+            xVal:randomX,
+            yVal: (randomX*leastSquares[0])+leastSquares[1]
+        });
     }
+    return returnData;
+}
 
+function randomFloatBetween(minValue,maxValue,precision){
+    if(typeof(precision) == 'undefined'){
+        precision = 2;
+    }
+    return parseFloat(Math.min(minValue + (Math.random() * (maxValue - minValue)),maxValue).toFixed(precision));
+}
+
+function getVals(x, y) {
+    var outX = [];
+    var outY = [];
+    data.forEach(function (d) {
+        outX.push(d[x]);
+        outY.push(d[y]);
+    });
+
+    return {x: outX, y: outY};
 }
