@@ -269,7 +269,7 @@ function updateViz() {
     // Add a group for each region
     var dots = scatterPlot.selectAll('.dot')
         .data(data.filter(function(d) {
-            return d.name.indexOf(filterTerm) != -1;
+            return d.name.toLowerCase().indexOf(filterTerm.toLowerCase()) != -1;
     }));
 
     var dotsEnter = dots.enter()
