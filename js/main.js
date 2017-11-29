@@ -268,13 +268,29 @@ function updateViz() {
     yScale.domain(yDomain).nice();
 
     // Update axises
-    spXAxis.transition()
-        .duration(750)
-        .call(d3.axisBottom(xScale));
+    if (chartScales.y === 'mean_earnings_after_8years' || chartScales.y === 'median_debt') {
+        spYAxis.transition()
+            .duration(750)
+            .call(d3.axisLeft(yScale).tickFormat(d3.format("$,i")));
+    } else {
+        spYAxis.transition()
+            .duration(750)
+            .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')));
+    }
 
-    spYAxis.transition()
-        .duration(750)
-        .call(d3.axisLeft(yScale));
+    if (chartScales.x === 'avg_cost' || chartScales.x === 'avg_family_income') {
+        spXAxis.transition()
+            .duration(750)
+            .call(d3.axisBottom(xScale).tickFormat(d3.format("$,i")));
+    } else if (chartScales.x === 'admission_rate') {
+        spXAxis.transition()
+            .duration(750)
+            .call(d3.axisBottom(xScale).tickFormat(d3.format('.0%')));
+    } else {
+        spXAxis.transition()
+            .duration(750)
+            .call(d3.axisBottom(xScale));
+    }
 
     // Add a group for each region
     var dots = scatterPlot.selectAll('.dot')
