@@ -31,7 +31,7 @@ var yScale = d3.scaleLinear().range([spHeight, 0]);
 var filterTerm = '';
 
 // Dot radius
-var dotRad = 3;
+var dotRad = 5;
 
 // Num of dots in row
 var rowNum;
@@ -79,7 +79,6 @@ var toolTip = d3.tip()
                 </tbody>
             </table>`
     });
-
 
 svg.call(toolTip);
 
@@ -267,6 +266,52 @@ function updateViz() {
     var dotsEnter = dots.enter()
         .append('g')
         .attr('class', 'dot')
+        .on('click', function(d, i) {
+            dataElement = d;
+            d3.select('body')
+                .append('div')
+                .attr("class", "card")
+                .html(function(d) {
+                    return "<h5>"+dataElement['name']+"</h5>" +
+                        `<table>
+                            <thead>
+                                <tr>
+                                    <td>Median ACT</td>
+                                    <td>Admission Rate</td>
+                                    <td>Avg Cost</td>
+                                    <td>Control</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>`+dataElement['act_median']+`</td>
+                                    <td>`+(dataElement['admission_rate']*100).toFixed(2)+`%</td>
+                                    <td>$`+Math.round(dataElement['avg_cost'])+`</td>
+                                    <td>`+dataElement['control']+`</td>
+                                </tr>
+                            </tbody>
+                            <thead>
+                                <tr>
+                                    <td>Undergrad Population</td>
+                                    <td>Retention Rate</td>
+                                    <td>Median Debt</td>
+                                    <td>Mean Earnings</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>`+dataElement['undergrad_population']+`</td>
+                                    <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
+                                    <td>$`+Math.round(dataElement['median_debt'])+`</td>
+                                    <td>$`+Math.round(dataElement['median_earnings_after_8year'])+`</td>
+                                </tr>
+                            </tbody>
+                        </table>`
+                })
+                .on('click', function(d) {
+                    d3.select(this).remove();
+                });
+        })
         .on('mouseover', function(d, i) {
             t = d3.select(this).attr('transform');
             t = t.split('(')[1].split(',');
