@@ -172,7 +172,8 @@ function(row){
         num_unemployed_after_8years: +row['Number of Unemployed 8 years after entry'],
         num_employed_after_8years: +row['Number of Employed 8 years after entry'],
         mean_earnings_after_8years: +row['Mean Earnings 8 years After Entry'],
-        median_earnings_after_8year: +row['Median Earnings 8 years After Entry']
+        median_earnings_after_8years: +row['Median Earnings 8 years After Entry'],
+        employment_rate_after_8years: +row['Number of Employed 8 years after entry'] / (+row['Number of Employed 8 years after entry'] + +row['Number of Unemployed 8 years after entry'])
     }
 },
 function(error, dataset){
