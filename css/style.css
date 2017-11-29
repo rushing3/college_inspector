@@ -107,16 +107,16 @@ a {
 }
 
 .card {
+    display: table-cell;
     line-height: 1;
     padding: 6px;
     background: rgba(240, 240, 240, 0.95);
     color: #333;
     border-radius: 4px;
     font-size: 14px;
-    top: -8px;
-    left: 20px;
-    width: 50%;
-    margin: 0px 4px 8px 4px;
+    height: 305px;
+    width: 705px;
+    margin: 0px 0px 8px 10px;
 }
 
 .card h5{
@@ -131,10 +131,23 @@ a {
     font-weight: 600;
 }
 
+.card thead tr {
+    paddin-top: 10px;
+}
+
 .card td {
     padding: 4px 10px 2px 2px;
 }
 
-.card thead tr {
-    paddin-top: 10px;
+.card tbody td {
+    padding: 4px 10px 10px 2px;
+}
+
+.card-table {
+    display: table;
+    width: 100%;
+}
+
+.row: {
+    display: table-row;
 }
