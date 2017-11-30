@@ -40,7 +40,7 @@ regionColorScale.range(customColors);
 // Makeshift control scale
 var controlColorScale = d3.scaleOrdinal();
 controlColorScale.domain(['Private', 'Public']);
-controlColorScale.range(['black', 'black']);
+controlColorScale.range(['white', 'black']);
 
 
 // Create scales
@@ -331,6 +331,21 @@ function(error, dataset){
     // Define dataset globally
     globalData = dataset;
 
+    // Define legend for private/public control
+    var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
+
+    svg.append('g')
+        .attr('transform', 'translate('+[svgWidth - 250, 536]+')')
+        .call(controlLegend);
+
+    svg.selectAll('.cell')
+        .attr('stroke', function (d) {
+            if (d === 'Private') {
+                d3.select(this).select('.swatch')
+                    .attr('stroke', 'black');
+            }
+        });
+
     // Nest region data
     var regionData = d3.nest()
         .key(function(d) {
@@ -349,17 +364,10 @@ function(error, dataset){
     // Define legend for region colors
     var regionLegend = d3.legendColor().scale(regionColorScale);
 
-    // Define legend for private/public control
-    var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
-
     // Add legend for region colors
     svg.append('g')
         .attr('transform', 'translate('+[svgWidth - 150, 530]+')')
         .call(regionLegend);
-
-    svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 250, 530]+')')
-        .call(controlLegend);
 
     svg.append('path')
         .attr('class', 'trendline')
