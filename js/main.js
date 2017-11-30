@@ -33,6 +33,12 @@ var customColors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
 var regionColorScale = d3.scaleOrdinal();
 regionColorScale.range(customColors);
 
+// Makeshift control scale
+var controlColorScale = d3.scaleOrdinal();
+controlColorScale.domain(['Private', 'Public']);
+controlColorScale.range(['black', 'black']);
+
+
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
@@ -312,10 +318,17 @@ function(error, dataset){
     // Define legend for region colors
     var regionLegend = d3.legendColor().scale(regionColorScale);
 
+    // Define legend for private/public control
+    var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
+
     // Add legend for region colors
     svg.append('g')
         .attr('transform', 'translate('+[svgWidth - 150, 530]+')')
         .call(regionLegend);
+
+    svg.append('g')
+        .attr('transform', 'translate('+[svgWidth - 250, 530]+')')
+        .call(controlLegend);
 
     svg.append('path')
         .attr('class', 'trendline')
@@ -329,7 +342,7 @@ function(error, dataset){
             var hovered = d3.select(this);
             text = hovered.select('text').text();
             scatterPlot.selectAll('.dot').classed('hidden', function(d) {
-                return d.region != text;
+                return d.region != text && d.control != text;
             });
             // Show the text, otherwise hidden
             legendCells.classed('hidden', function(d) {
