@@ -39,6 +39,11 @@ a {
     shape-rendering: crispEdges;
 }
 
+.disappear {
+    fill-opacity: .02;
+    stroke-opacity: .1;
+}
+
 .hidden {
     fill-opacity: .1;
     stroke-opacity: .2;

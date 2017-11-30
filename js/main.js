@@ -278,6 +278,20 @@ function BarChart(attribute, index) {
         .attr('transform', function(d, i) {
             return 'translate('+[10, i * (barChartHeight/7) + 50]+')';
         })
+        .on('mouseover', function(d){ // Add hover start event binding
+            // Select the hovered g
+            var hovered = d3.select(this);
+            text = hovered.select('text').text();
+            text = text.split('. ')[1].split(' -')[0];
+            scatterPlot.selectAll('.dot').classed('disappear', function(d) {
+                return d.name != text;
+            });
+        })
+        .on('mouseout', function(d){ // Add hover end event binding
+            // Select the hovered g
+            var hovered = d3.select(this);
+            scatterPlot.selectAll('.dot').classed('disappear', false);
+        })
         .each(function(d, i) {
             d3.select(this).append('text')
                 .attr('fill', 'black')
