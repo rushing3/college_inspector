@@ -10,6 +10,7 @@ var padding = {t: 90, r: 20, b: 40, l: 55};
 // Bar Chart dimensions
 var barChartWidth = svgWidth*(1/3) - 3*padding.r;
 var barChartHeight = svgHeight*(1/3) - padding.t;
+var barPadding = 28;
 
 // ScatterPlot dimensions
 var spWidth = svgWidth*(2/3) - padding.l;
@@ -42,10 +43,12 @@ var controlColorScale = d3.scaleOrdinal();
 controlColorScale.domain(['Private', 'Public']);
 controlColorScale.range(['white', 'black']);
 
-
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
+
+// Bar scales
+var xBarScale = d3.scaleLinear().rangeRound([0, barChartWidth - 2*barPadding]);
 
 // Regression line
 var regression = d3.line();
@@ -220,13 +223,14 @@ function BarChart(attribute, title, index) {
             };
         }).sort(function(a, b) {
             return d3.descending(a.value, b.value);
-        }).slice(0, 5);
+        });
 
-    var xBarScale = d3.scaleLinear().rangeRound([0, barChartWidth/2]);
-    var yBarScale = d3.scaleLinear().rangeRound([10, barChartHeight- 10]);
+    var xBarDomain = d3.extent(barData, function(d){
+        return d.value;
+    });
 
-    var xBarAxis = d3.axisBottom(xBarScale).ticks(5).tickFormat(d3.format(".1s"));
-    var yBarAxis = d3.axisLeft(yBarScale);
+    xBarScale.domain(xBarDomain).nice();
+    barData = barData.slice(0, 5);
 
     // Add rectangle for barchart outline
     group.append('rect')
@@ -262,13 +266,15 @@ function BarChart(attribute, title, index) {
                 });
 
             d3.select(this).append('rect')
-                .attr('width', '100')
-                .attr('height', '2')
+                .attr('width', function(x) {
+                    return xBarScale(d.value);
+                })
+                .attr('height', '4')
                 .attr('fill', function(x) {
                     return regionColorScale(d.region);
                 })
                 .attr('transform', function(x) {
-                    return 'translate('+[14, 14]+')';
+                    return 'translate('+[barPadding, 12]+')';
                 });
         });
     return group;
