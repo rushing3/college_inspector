@@ -284,7 +284,13 @@ function BarChart(attribute, index) {
                 .attr("font-size", 12)
                 .attr('transform', 'translate(14, 9)')
                 .text(function(x) {
-                    return (i+1) + '. ' + d.name + ' - $' + d.value;
+                    if (attribute.indexOf('rate') != -1) {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format('.0%')(d.value);
+                    } else if (attribute.indexOf('population') != -1) {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format(",i")(d.value);
+                    } else {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format("$,i")(d.value);
+                    }
                 });
 
             d3.select(this).append('rect')
