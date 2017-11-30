@@ -13,7 +13,7 @@
             <div>
                 <label for="xAxisSelect" style="font-weight: 600">X-Axis:</label>
             </div>
-            <select class="custom-select small" id="xSelect" onchange="onXChanged()">
+            <select class="custom-select large" id="xSelect" onchange="onXChanged()">
                 <option selected value="sat_average">Average SAT</option>
                 <option value="act_median">Median ACT</option>
                 <option value="admission_rate">Admission Rate</option>
@@ -26,12 +26,30 @@
             <div>
                 <label for="yAxisSelect" style="font-weight: 600">Y-Axis:</label>
             </div>
-            <select class="custom-select small" id="ySelect" onchange="onYChanged()">
+            <select class="custom-select large" id="ySelect" onchange="onYChanged()">
                 <option selected value="mean_earnings_after_8years">Mean Earnings 8 years after Entry</option>
                 <option value="median_debt">Median Debt</option>
                 <option value="retention_rate">Retention Rate</option>
                 <option value="completion_rate">Completion Rate</option>
                 <option value="employment_rate_after_8years">Employment Rate 8 years after entry</option>
+            </select>
+        </div>
+        <div style="position: absolute; top: 37px; left: 1005px;">
+            <select class="custom-select large" id="topSelect" style="font-weight: 600; border: 0px; outline: 0px;" onchange="onTopChanged()">
+                <option selected value="mean_earnings_after_8years">Top 5 Mean Earnings 8 years after Entry</option>
+                <option value="median_debt">Top 5 Median Debt</option>
+                <option value="retention_rate">Top 5 Retention Rate</option>
+                <option value="completion_rate">Top 5 Completion Rate</option>
+                <option value="employment_rate_after_8years">Top 5 Employment Rate 8 years after entry</option>
+            </select>
+        </div>
+        <div style="position: absolute; top: 212px; left: 1005px;">
+            <select class="custom-select large" id="bottomSelect" style="font-weight: 600; border: 0px; outline: 0px;" onchange="onBottomChanged()">
+                <option selected value="mean_earnings_after_8years"> Bottom 5 Mean Earnings 8 years after Entry</option>
+                <option value="median_debt"> Bottom 5 Median Debt</option>
+                <option value="retention_rate"> Bottom 5 Retention Rate</option>
+                <option value="completion_rate"> Bottom 5 Completion Rate</option>
+                <option value="employment_rate_after_8years"> Bottom 5 Employment Rate 8 years after entry</option>
             </select>
         </div>
         <div style="position: absolute; top: 441px; left: 1175px;">

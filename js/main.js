@@ -9,7 +9,7 @@ var padding = {t: 90, r: 20, b: 40, l: 55};
 
 // Bar Chart dimensions
 var barChartWidth = svgWidth*(1/3) - 3*padding.r;
-var barChartHeight = svgHeight*(1/3) - padding.t;
+var barChartHeight = svgHeight*(1/3) + 20 - padding.t;
 var barPadding = 28;
 
 // ScatterPlot dimensions
@@ -214,7 +214,7 @@ var toolTip = d3.tip()
 
 svg.call(toolTip);
 
-function BarChart(attribute, title, index) {
+function BarChart(attribute, index) {
     var group = svg.append('g')
         .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.r]+')');
 
@@ -224,8 +224,14 @@ function BarChart(attribute, title, index) {
             value: d[attribute],
             region: d.region
             };
+        }).filter(function(d) {
+            return d.value != 0;
         }).sort(function(a, b) {
-            return d3.descending(a.value, b.value);
+            if (index == 0) {
+                return d3.descending(a.value, b.value);
+            } else {
+                return d3.ascending(a.value, b.value);
+            }
         });
 
     var xBarDomain = d3.extent(barData, function(d){
@@ -245,20 +251,13 @@ function BarChart(attribute, title, index) {
         .attr('stroke', 'black')
         .attr('stroke-width', '1px');
 
-    // Add chart title
-    group.append('text')
-        .attr('transform', 'translate(10, 25)')
-        .attr('fill', 'black')
-        .attr('font-size', 18)
-        .attr('font-weight', 600)
-        .text(title);
-
     var chart = group.selectAll('.bar')
-        .data(barData)
-        .enter()
+        .data(barData);
+
+    chartEnter = chart.enter()
         .append('g')
         .attr('transform', function(d, i) {
-            return 'translate('+[10, i * (barChartHeight/7) + 40]+')';
+            return 'translate('+[10, i * (barChartHeight/7) + 50]+')';
         })
         .each(function(d, i) {
             d3.select(this).append('text')
@@ -281,8 +280,12 @@ function BarChart(attribute, title, index) {
                     return 'translate('+[barPadding, 12]+')';
                 });
         });
-    return group;
 
+    chart.merge(chartEnter).transition();
+
+    chart.exit().remove();
+
+    return group;
 };
 
 d3.csv('./data/colleges.csv',
@@ -431,14 +434,25 @@ function(error, dataset){
             updateViz()
         });
 
-    var bCOne = new BarChart('mean_earnings_after_8years', 'Top 5 Earners', 0);
-    var bCTwo = new BarChart('median_debt', 'Top 5 Debtors', 1);
+    // Create global object called barCharts to keep state
+    barCharts = {
+        0: {attribute: 'mean_earnings_after_8years', index: 0},
+        1: {attribute: 'median_debt', index: 1}
+    };
 
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
+    updateBarChart();
     updateViz();
 });
+
+function updateBarChart() {
+
+    BarChart(barCharts[0]['attribute'], 0);
+    BarChart(barCharts[1]['attribute'], 1);
+
+}
 
 function updateViz() {
     data = globalData.filter(function(d) {
@@ -596,10 +610,6 @@ function updateViz() {
     dots.merge(dotsEnter)
         .transition()
         .duration(750)
-
-    dots.merge(dotsEnter)
-        .transition()
-        .duration(750)
         .attr('fill', function(d) {
             if (d['control'] === 'Private') {
                 return 'white'
@@ -650,6 +660,24 @@ function onYChanged() {
     chartScales.y = y;
 
     updateViz();
+}
+
+function onTopChanged() {
+    var select = d3.select('#topSelect').node();
+    var top = select.options[select.selectedIndex].value;
+
+    barCharts[0] = {attribute: top, index: 0};
+
+    updateBarChart();
+}
+
+function onBottomChanged() {
+    var select = d3.select('#bottomSelect').node();
+    var bottom = select.options[select.selectedIndex].value;
+
+    barCharts[1] = {attribute: bottom, index: 1};
+
+    updateBarChart();
 }
 
 function onFilterTermChanged(newFilterTerm) {
