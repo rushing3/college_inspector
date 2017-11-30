@@ -95,7 +95,7 @@ var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486
 
 // Card HTML
 var cardHtml = function(dataElement) {
-    return `<h5>`+dataElement['name']+`</h5>
+    return `<h5>`+dataElement['name']+ '  (' + dataElement['control'] + ')' +`</h5>
     <div class="table">
         <div class="row">
             <div class="column" style="padding: 0px 15px 4px 0px;">
