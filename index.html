@@ -11,7 +11,7 @@
     <div id="main">
         <div style="position: absolute; top: 650px; left: 980px;">
             <div>
-                <label for="xAxisSelect">X-Axis:</label>
+                <label for="xAxisSelect" style="font-weight: 600">X-Axis:</label>
             </div>
             <select class="custom-select small" id="xSelect" onchange="onXChanged()">
                 <option selected value="sat_average">Average SAT</option>
@@ -24,7 +24,7 @@
         </div>
         <div style="position: absolute; top: 17px; left: 20px;">
             <div>
-                <label for="yAxisSelect">Y-Axis:</label>
+                <label for="yAxisSelect" style="font-weight: 600">Y-Axis:</label>
             </div>
             <select class="custom-select small" id="ySelect" onchange="onYChanged()">
                 <option selected value="mean_earnings_after_8years">Mean Earnings 8 years after Entry</option>
@@ -34,11 +34,12 @@
                 <option value="employment_rate_after_8years">Employment Rate 8 years after entry</option>
             </select>
         </div>
-        <div style="position: absolute; top: 17px; left: 1200px;">
+        <div style="position: absolute; top: 441px; left: 1175px;">
             <div>
-                <label for="filterTerm">Search by Name:</label>
+                <label for="filterTerm" style="font-size: 16px; font-weight: 600;">Search by Name:</label>
             </div>
-            <input type="text" value="" onchange="onFilterTermChanged(this.value)">
+            <input type="text" value="" style="width: 230px;" onchange="onFilterTermChanged(this.value)">
+            <hr>
         </div>
         <svg width="1420" height="720" style="border: 1px solid #777;">
         </svg>

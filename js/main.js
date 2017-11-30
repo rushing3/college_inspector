@@ -213,7 +213,7 @@ svg.call(toolTip);
 
 function BarChart(attribute, title, index) {
     var group = svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.t]+')');
+        .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.r]+')');
 
     var barData = globalData.map(function(d) {
         return {
@@ -246,7 +246,8 @@ function BarChart(attribute, title, index) {
     group.append('text')
         .attr('transform', 'translate(10, 25)')
         .attr('fill', 'black')
-        .attr("font-size", 18)
+        .attr('font-size', 18)
+        .attr('font-weight', 600)
         .text(title);
 
     var chart = group.selectAll('.bar')
@@ -341,7 +342,7 @@ function(error, dataset){
     var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
 
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 250, 536]+')')
+        .attr('transform', 'translate('+[svgWidth - 250, 537]+')')
         .call(controlLegend);
 
     svg.selectAll('.cell')
@@ -372,7 +373,7 @@ function(error, dataset){
 
     // Add legend for region colors
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 150, 530]+')')
+        .attr('transform', 'translate('+[svgWidth - 167, 530]+')')
         .call(regionLegend);
 
     svg.append('path')
