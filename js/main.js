@@ -59,11 +59,8 @@ var filterTerm = '';
 // Dot radius
 var dotRad = 5;
 
-// Num of dots in row
-var rowNum;
-
-// Dot spacing
-var dotSpace = dotRad*2 + 1;
+// Thickness of private dots' strokes
+var privateStroke = 2;
 
 // List of current Cards
 var currentCards = {};
@@ -275,6 +272,7 @@ function BarChart(attribute, index) {
 
     chartEnter = chart.enter()
         .append('g')
+        .attr('class', 'bar')
         .attr('transform', function(d, i) {
             return 'translate('+[10, i * (barChartHeight/7) + 50]+')';
         })
@@ -286,11 +284,16 @@ function BarChart(attribute, index) {
             scatterPlot.selectAll('.dot').classed('disappear', function(d) {
                 return d.name != text;
             });
+            // Show the text, otherwise hidden
+            svg.selectAll('.bar').classed('hidden', function(d) {
+                return d.name != text;
+            });
         })
         .on('mouseout', function(d){ // Add hover end event binding
             // Select the hovered g
             var hovered = d3.select(this);
             scatterPlot.selectAll('.dot').classed('disappear', false);
+            svg.selectAll('.bar').classed('hidden', false);
         })
         .each(function(d, i) {
             d3.select(this).append('text')
@@ -394,6 +397,7 @@ function(error, dataset){
         .attr('stroke', function (d) {
             if (d === 'Private') {
                 d3.select(this).select('.swatch')
+                    .attr('stroke-width', privateStroke)
                     .attr('stroke', 'black');
             }
         });
@@ -647,6 +651,7 @@ function updateViz() {
         .attr('stroke', function (d) {
             return regionColorScale(d.region);
         })
+        .attr('stroke-width', privateStroke)
         .attr('transform', function(d) {
             var tx = xScale(d[chartScales.x]);
             var ty = yScale(d[chartScales.y]);
