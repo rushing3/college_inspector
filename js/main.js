@@ -55,6 +55,24 @@ var dotSpace = dotRad*2 + 1;
 // List of current Cards
 var currentCards = {};
 
+// Pie Chart dimensions
+var pieWidth = 320;
+var pieHeight = 250;
+var radius = pieHeight/2;
+
+// Pie Chart stuff
+var path = d3.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var label = d3.arc()
+    .outerRadius(radius - 30)
+    .innerRadius(radius - 30);
+
+// Pie Chart colors
+//var pieColor = d3.scaleOrdinal(d3.schemeSet3);
+var pieColor = d3.scaleOrdinal(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
 // Make tooltip
 var toolTip = d3.tip()
     .attr("class", "d3-tip")
@@ -218,7 +236,7 @@ function(error, dataset){
 
     // Add legend for region colors
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 120, 500]+') scale(0.8, 0.8)')
+        .attr('transform', 'translate('+[svgWidth - 150, 530]+')')
         .call(regionLegend);
 
     svg.append('path')
@@ -367,7 +385,7 @@ function updateViz() {
                                     </div>
                                     <div class="column">
                                         <h5>Demographics</h5>
-                                        <svg id=`+dataElement['name']+` width="320" height="250" style="border: 1px solid #777;">
+                                        <svg id=`+dataElement['name'].replace(/ /g, '')+` width="`+pieWidth+`" height="`+pieHeight+`" style="border: 1px solid #777;">
                                         </svg>
                                     </div>
                                 </div>
@@ -376,9 +394,41 @@ function updateViz() {
                     .on('click', function(d) {
                         delete currentCards[dataElement['name']];
                         d3.select(this).remove();
-                        console.log(currentCards);
                     });
-                    currentCards[dataElement['name']] = card;
+
+                currentCards[dataElement['name']] = card;
+
+                var demographics = d3.select('#'+dataElement['name'].replace(/ /g, ''));
+
+                var pie = d3.pie()
+                    .sort(null)
+                    .value(function(d) {return d});
+
+                var demographicsData = [
+                    dataElement['percent_white'],
+                    dataElement['percent_black'],
+                    dataElement['percent_hispanic'],
+                    dataElement['percent_asian'],
+                    dataElement['percent_american_indian'],
+                    dataElement['percent_pacific_islander'],
+                    dataElement['percent_biracial']
+                ];
+
+                var g = demographics.append("g").attr("transform", "translate(" + +demographics.attr('width')/ 2 + "," + radius + ")");
+
+                var arc = g.selectAll(".arc")
+                    .data(pie(demographicsData))
+                    .enter().append("g")
+                    .attr("class", "arc");
+
+                arc.append("path")
+                    .attr("d", path)
+                    .attr("fill", function(d) { return pieColor(d.data); });
+
+                arc.append("text")
+                    .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
+                    .attr("dy", "0.35em")
+                    .text(function(d) { return d.data; });
             }
         })
         .on('mouseover', function(d, i) {
