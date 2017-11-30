@@ -41,6 +41,7 @@ a {
 
 .hidden {
     fill-opacity: .1;
+    stroke-opacity: .1;
 }
 
 .d3-tip {

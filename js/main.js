@@ -501,6 +501,13 @@ function updateViz() {
         .transition()
         .duration(750)
         .attr('fill', function(d) {
+            if (d['control'] === 'Private') {
+                return 'white'
+            } else {
+                return regionColorScale(d.region);
+            }
+        })
+        .attr('stroke', function (d) {
             return regionColorScale(d.region);
         })
         .attr('transform', function(d) {
