@@ -457,7 +457,7 @@ function(error, dataset){
     // Create global object called barCharts to keep state
     barCharts = {
         0: {attribute: 'mean_earnings_after_8years', index: 0},
-        1: {attribute: 'median_debt', index: 1}
+        1: {attribute: 'mean_earnings_after_8years', index: 1},
     };
 
     // Create global object called chartScales to keep state
