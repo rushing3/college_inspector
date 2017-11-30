@@ -214,11 +214,30 @@ var toolTip = d3.tip()
 
 svg.call(toolTip);
 
+function dataFilter(d) {
+        var dataCheck = (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
+        var controlCheck;
+        if (controlFilter.length > 0) {
+            controlCheck = controlFilter.includes(d.control);
+        } else {
+            controlCheck = true;
+        }
+        var regionCheck;
+        if (regionFilter.length > 0) {
+            regionCheck = regionFilter.includes(d.region);
+        } else {
+            regionCheck = true;
+        }
+        return dataCheck && controlCheck && regionCheck;
+}
+
 function BarChart(attribute, index) {
     var group = svg.append('g')
         .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.r]+')');
 
-    var barData = globalData.map(function(d) {
+    var barData = globalData.filter(function(d) { return dataFilter(d); });
+
+    barData = barData.map(function(d) {
         return {
             name: d.name,
             value: d[attribute],
@@ -431,6 +450,7 @@ function(error, dataset){
                 }
                 console.log(regionFilter);
             }
+            updateBarChart();
             updateViz()
         });
 
@@ -456,20 +476,7 @@ function updateBarChart() {
 
 function updateViz() {
     data = globalData.filter(function(d) {
-        var dataCheck = (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
-        var controlCheck;
-        if (controlFilter.length > 0) {
-            controlCheck = controlFilter.includes(d.control);
-        } else {
-            controlCheck = true;
-        }
-        var regionCheck;
-        if (regionFilter.length > 0) {
-            regionCheck = regionFilter.includes(d.region);
-        } else {
-            regionCheck = true;
-        }
-        return dataCheck && controlCheck && regionCheck;
+        return dataFilter(d);
     });
 
     xDomain = d3.extent(data, function(data_element){
