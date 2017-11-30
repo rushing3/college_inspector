@@ -5,7 +5,11 @@ var svgWidth = +svg.attr('width');
 var svgHeight = +svg.attr('height');
 
 // Define a padding object
-var padding = {t: 90, r: 40, b: 40, l: 55};
+var padding = {t: 90, r: 20, b: 40, l: 55};
+
+// Bar Chart dimensions
+var barChartWidth = svgWidth*(1/3) - 3*padding.r;
+var barChartHeight = svgHeight*(1/3) - padding.t;
 
 // ScatterPlot dimensions
 var spWidth = svgWidth*(2/3) - padding.l;
@@ -67,6 +71,10 @@ var pieHeight = 240;
 var radius = pieHeight/2;
 
 // Pie Chart stuff
+var pie = d3.pie()
+    .sort(null)
+    .value(function(d) {return d.value});
+
 var path = d3.arc()
     .outerRadius(radius - 6)
     .innerRadius(0);
@@ -200,47 +208,70 @@ var toolTip = d3.tip()
 
 svg.call(toolTip);
 
-function Visual(x) {
-    this.x = x;
-}
+function BarChart(attribute, title, index) {
+    var group = svg.append('g')
+        .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.t]+')');
 
-Visual.prototype.init = function(data, group) {
-    var viz = d3.select(group);
+    var barData = globalData.map(function(d) {
+        return {
+            name: d.name,
+            value: d[attribute],
+            region: d.region
+            };
+        }).sort(function(a, b) {
+            return d3.descending(a.value, b.value);
+        }).slice(0, 5);
 
-    // Add dot for each college in region, color coded by region
-    viz.selectAll('.college')
-        .data(data.value.values)
+    var xBarScale = d3.scaleLinear().rangeRound([0, barChartWidth/2]);
+    var yBarScale = d3.scaleLinear().rangeRound([10, barChartHeight- 10]);
+
+    var xBarAxis = d3.axisBottom(xBarScale).ticks(5).tickFormat(d3.format(".1s"));
+    var yBarAxis = d3.axisLeft(yBarScale);
+
+    // Add rectangle for barchart outline
+    group.append('rect')
+        .attr('x', '0')
+        .attr('y', '0')
+        .attr('width', barChartWidth)
+        .attr('height', barChartHeight)
+        .attr('fill', 'white')
+        .attr('stroke', 'black')
+        .attr('stroke-width', '1px');
+
+    // Add chart title
+    group.append('text')
+        .attr('transform', 'translate(10, 25)')
+        .attr('fill', 'black')
+        .attr("font-size", 18)
+        .text(title);
+
+    var chart = group.selectAll('.bar')
+        .data(barData)
         .enter()
-        .append('circle')
-        .attr('fill', function(d) {
-            return regionColorScale(d.region);
+        .append('g')
+        .attr('transform', function(d, i) {
+            return 'translate('+[10, i * (barChartHeight/7) + 40]+')';
         })
-        .attr('r', dotRad)
-        .attr('cx', function(d, i) {
-            return (i%rowNum)*dotSpace + 10;
-        })
-        .attr('cy', function(d, i) {
-            return Math.floor(i/rowNum)*dotSpace + 70;
-        })
-        .on('mouseover', function(d, i) {
-            t = d3.select(this.parentNode).attr('transform');
-            t = t.split('(')[1].split(',')[0];
-            t = parseFloat(t);
-            cy = d3.select(this).attr('cy');
-            cx = d3.select(this).attr('cx');
-            absx = parseFloat(cx) + t;
-            if(cy < 100 && absx < 200) {
-                toolTip.direction('se');
-            } else if (cy < 100) {
-                toolTip.direction('s');
-            } else if (absx < 200) {
-                toolTip.direction('ne');
-            } else {
-                toolTip.direction('n');
-            }
-            toolTip.show(d, i);
-        })
-        .on('mouseout', toolTip.hide);
+        .each(function(d, i) {
+            d3.select(this).append('text')
+                .attr('fill', 'black')
+                .attr("font-size", 12)
+                .attr('transform', 'translate(14, 9)')
+                .text(function(x) {
+                    return (i+1) + '. ' + d.name + ' - $' + d.value;
+                });
+
+            d3.select(this).append('rect')
+                .attr('width', '100')
+                .attr('height', '2')
+                .attr('fill', function(x) {
+                    return regionColorScale(d.region);
+                })
+                .attr('transform', function(x) {
+                    return 'translate('+[14, 14]+')';
+                });
+        });
+    return group;
 
 };
 
@@ -356,6 +387,9 @@ function(error, dataset){
             legendCells.classed('hidden', false);
         });
 
+    var bCOne = new BarChart('mean_earnings_after_8years', 'Top 5 Earners', 0);
+    var bCTwo = new BarChart('median_debt', 'Top 5 Debtors', 1);
+
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
@@ -435,10 +469,6 @@ function updateViz() {
 
                 var demographics = d3.select('#'+dataElement['name'].replace(/ /g, ''));
 
-                var pie = d3.pie()
-                    .sort(null)
-                    .value(function(d) {return d.value});
-
                 var demographicsData = [
                     {name: 'White', value: dataElement['percent_white']},
                     {name: 'Black', value: dataElement['percent_black']},
@@ -463,21 +493,21 @@ function updateViz() {
                     .attr('transform', 'translate('+[126, -60]+')')
                     .call(demographicsLegend);
 
-                var arc = g.selectAll(".arc")
+                var arc = g.selectAll('.arc')
                     .data(pie(demographicsData))
-                    .enter().append("g")
-                    .attr("class", "arc");
+                    .enter().append('g')
+                    .attr('class', 'arc');
 
-                arc.append("path")
-                    .attr("d", path)
-                    .attr("fill", function(d) { return pieColor(d.value); });
+                arc.append('path')
+                    .attr('d', path)
+                    .attr('fill', function(d) { return pieColor(d.value); });
 
-                arc.append("text")
-                    .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
-                    .attr("dy", "0.35em")
-                    .attr("text-anchor", "middle")
+                arc.append('text')
+                    .attr('transform', function(d) { return 'translate(' + label.centroid(d) + ')'; })
+                    .attr('dy', '0.35em')
+                    .attr('text-anchor', 'middle')
                     .text(function(d) {
-                        if (Math.round(d.data.value*100) > 1) {
+                        if (Math.round(d.data.value*100) > 2) {
                             return d3.format('.0%')(d.data.value);
                         } else {
                             return '';
