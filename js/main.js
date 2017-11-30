@@ -56,76 +56,94 @@ var dotSpace = dotRad*2 + 1;
 var currentCards = {};
 
 // Pie Chart dimensions
-var pieWidth = 320;
-var pieHeight = 250;
+var pieWidth = 400;
+var pieHeight = 240;
 var radius = pieHeight/2;
 
 // Pie Chart stuff
 var path = d3.arc()
-    .outerRadius(radius - 8)
+    .outerRadius(radius - 6)
     .innerRadius(0);
 
 var label = d3.arc()
-    .outerRadius(radius - 30)
-    .innerRadius(radius - 30);
+    .outerRadius(radius - 21)
+    .innerRadius(radius - 21);
 
 // Pie Chart colors
 //var pieColor = d3.scaleOrdinal(d3.schemeSet3);
-var pieColor = d3.scaleOrdinal(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
 // Card HTML
 var cardHtml = function(dataElement) {
-    return `<div class="table">
+    return `<h5>`+dataElement['name']+`</h5>
+    <div class="table">
         <div class="row">
             <div class="column" style="padding: 0px 15px 4px 0px;">
-                <h5>`+dataElement['name']+`</h5>
                 <table>
                     <thead>
                         <tr>
                             <td>Median ACT</td>
                             <td>Average SAT</td>
-                            <td>Admission Rate</td>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>`+dataElement['act_median']+`</td>
                             <td>`+dataElement['sat_average']+`</td>
+                        </tr>
+                    </tbody>
+                    <thead>
+                        <tr>
+                            <td>Admission Rate</td>
+                            <td>Retention Rate</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
                             <td>`+(dataElement['admission_rate']*100).toFixed(2)+`%</td>
+                            <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
                         </tr>
                     </tbody>
                     <thead>
                         <tr>
                             <td>Median Debt</td>
                             <td>Mean Earnings</td>
-                            <td>Avg Cost</td>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>$`+Math.round(dataElement['median_debt'])+`</td>
                             <td>$`+Math.round(dataElement['median_earnings_after_8years'])+`</td>
+                        </tr>
+                    </tbody>
+                    <thead>
+                        <tr>
+                            <td>Avg Cost</td>
+                            <td>Avg Family Income</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
                             <td>$`+Math.round(dataElement['avg_cost'])+`</td>
+                            <td>$`+Math.round(dataElement['avg_family_income'])+`</td>
                         </tr>
                     </tbody>
                     <thead>
                         <tr>
                             <td>Undergrad Population</td>
-                            <td>Retention Rate</td>
                             <td>% Part-Time</td>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>`+dataElement['undergrad_population']+`</td>
-                            <td>`+(dataElement['retention_rate']*100).toFixed(2)+`%</td>
                             <td>`+(dataElement['percent_part_time']*100).toFixed(2)+`%</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div class="column">
-                <h5>Demographics</h5>
+                <div class="pie-title">Demographics</div>
                 <svg id=`+dataElement['name'].replace(/ /g, '')+` width="`+pieWidth+`" height="`+pieHeight+`" style="border: 1px solid #777; background: white;">
                 </svg>
             </div>
@@ -418,7 +436,19 @@ function updateViz() {
                     {name: 'Biracial', value: dataElement['percent_biracial']}
                 ];
 
-                var g = demographics.append("g").attr("transform", "translate(" + pieWidth/2 + "," + radius + ")");
+                var g = demographics.append("g").attr("transform", "translate(" + radius + "," + radius + ")");
+
+                // Define legend for demographics colors
+                var demographicsDomain = demographicsData.map(function(d) {
+                    return d.name + ' ' + d3.format('.0%')(d.value);
+                });
+                pieColor.domain(demographicsDomain);
+                var demographicsLegend = d3.legendColor().scale(pieColor);
+
+                // Add legend for demographics colors
+                g.append('g')
+                    .attr('transform', 'translate('+[126, -60]+')')
+                    .call(demographicsLegend);
 
                 var arc = g.selectAll(".arc")
                     .data(pie(demographicsData))
@@ -432,7 +462,14 @@ function updateViz() {
                 arc.append("text")
                     .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
                     .attr("dy", "0.35em")
-                    .text(function(d) { return d.data.name + ' ' + d3.format('.0%')(d.data.value); });
+                    .attr("text-anchor", "middle")
+                    .text(function(d) {
+                        if (Math.round(d.data.value*100) > 1) {
+                            return d3.format('.0%')(d.data.value);
+                        } else {
+                            return '';
+                        }
+                    });
             }
         })
         .on('mouseover', function(d, i) {
