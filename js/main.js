@@ -86,6 +86,9 @@ var label = d3.arc()
     .outerRadius(radius - 21)
     .innerRadius(radius - 21);
 
+var controlFilter = [];
+var regionFilter = [];
+
 // Pie Chart colors
 //var pieColor = d3.scaleOrdinal(d3.schemeSet3);
 var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
@@ -400,6 +403,32 @@ function(error, dataset){
             var hovered = d3.select(this);
             scatterPlot.selectAll('.dot').classed('hidden', false);
             legendCells.classed('hidden', false);
+        })
+        .on('click', function (d) { // filters data
+            // Handle control filter
+            if (d === 'Private' || d === 'Public') {
+                if (!controlFilter.includes(d)) {
+                    controlFilter.push(d);
+                    if (controlFilter.length === 2) {
+                        controlFilter = [];
+                    }
+                } else {
+                    controlFilter.pop(d);
+                }
+            }
+            // Handle region filters
+            else {
+                if (!regionFilter.includes(d)) {
+                    regionFilter.push(d);
+                    if (regionFilter.length === 9) {
+                        regionFilter = [];
+                    }
+                } else {
+                    regionFilter.pop(d);
+                }
+                console.log(regionFilter);
+            }
+            updateViz()
         });
 
     var bCOne = new BarChart('mean_earnings_after_8years', 'Top 5 Earners', 0);
@@ -413,7 +442,20 @@ function(error, dataset){
 
 function updateViz() {
     data = globalData.filter(function(d) {
-        return (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
+        var dataCheck = (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
+        var controlCheck;
+        if (controlFilter.length > 0) {
+            controlCheck = controlFilter.includes(d.control);
+        } else {
+            controlCheck = true;
+        }
+        var regionCheck;
+        if (regionFilter.length > 0) {
+            regionCheck = regionFilter.includes(d.region);
+        } else {
+            regionCheck = true;
+        }
+        return dataCheck && controlCheck && regionCheck;
     });
 
     xDomain = d3.extent(data, function(data_element){
