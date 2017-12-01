@@ -528,12 +528,23 @@ function(error, dataset){
             });
             // Show the text, otherwise hidden
             legendCells.classed('hidden', function(d) {
-                return d != text;
+                if (d == 'Private' || d == 'Public') {
+                    return d != text && (!controlFilter.includes(d) || controlFilter.length == 0);
+                }
+                return d != text && (!regionFilter.includes(d));
             });
         })
         .on('mouseout', function(d){ // Add hover end event binding
             scatterPlot.selectAll('.dot').classed('hidden', false);
-            legendCells.classed('hidden', false);
+            legendCells.classed('hidden', function(d) {
+                if (regionFilter.length == 0 && controlFilter.length == 0) {
+                    return false;
+                }
+                if (d == 'Private' || d == 'Public') {
+                    return !(controlFilter.includes(d) || controlFilter.length == 0);
+                }
+                return !(regionFilter.includes(d));
+            });
         })
         .on('click', function (d) { // filters data
             // Handle control filter
@@ -558,6 +569,7 @@ function(error, dataset){
                     regionFilter.pop(d);
                 }
             }
+
             updateBarChart();
             updateViz()
         });
@@ -578,6 +590,13 @@ function(error, dataset){
     cardData = cardData.filter(function(d){ return dataFilter(d);});
     currentCards[cardData[0]['name']] = card(cardData[0]);
     currentCards[cardData[1]['name']] = card(cardData[1]);
+
+    // Autocomplete College names
+    $( function() {
+        $( "#search" ).autocomplete({
+            source: dataset.map(function(d) { return d.name; })
+        });
+    });
 
 });
 
@@ -765,6 +784,13 @@ function toggleTrendline() {
 function clearFilters() {
     controlFilter = [];
     regionFilter = [];
+    filterTerm = '';
+    d3.select('#search').property('value', '');
+
+    d3.selectAll('.cell')
+        .classed('hidden', function(d) {
+            return regionFilter.includes(d);
+        });
 
     updateBarChart();
     updateViz();

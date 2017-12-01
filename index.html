@@ -5,7 +5,10 @@
         <title>P5 - Colleges</title>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.9.0/css/bootstrap-slider.min.css">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
         <link rel="stylesheet" href="./css/style.css">
+        <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+        <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     </head>
     <body>
     <div id="main">
@@ -60,20 +63,20 @@
                 <option value="undergrad_population">Bottom 5 Undergrad Population</option>
             </select>
         </div>
-        <div style="position: absolute; top: 344px; left: 1025px;">
-            <div>
+        <div style="position: absolute; top: 344px; left: 870px;">
+            <div class="ui-widget">
                 <label for="filterTerm" style="font-size: 16px; font-weight: 600;">Search by Name:</label>
             </div>
-            <input type="text" value="" style="width: 230px;" onchange="onFilterTermChanged(this.value)">
+            <input type="text" value="" id="search" style="width: 385px;" onChange="onFilterTermChanged(this.value)">
             <hr>
         </div>
-        <div style="position: absolute; top: 372px; left: 870px;">
+        <div style="position: absolute; top: 490px; left: 870px;">
             <div>
                 <button class="btn btn-default btn-sm" style="font-size: 16px; font-weight: 600;" onClick=toggleTrendline()>Toggle Trendline</button>
             </div>
             <hr>
         </div>
-        <div style="position: absolute; top: 440px; left: 870px;">
+        <div style="position: absolute; top: 442px; left: 870px;">
             <div>
                 <button class="btn btn-default btn-sm" style="font-size: 16px; font-weight: 600;" onClick=clearFilters()>Clear Filters</button>
             </div>
@@ -86,7 +89,6 @@
         </div>
     </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.9.0/bootstrap-slider.min.js"></script>
