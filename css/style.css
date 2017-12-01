@@ -40,18 +40,15 @@ a {
 }
 
 .remove {
-    fill-opacity: 0;
-    stroke-opacity: 0;
+    opacity: 0;
 }
 
 .disappear {
-    fill-opacity: .02;
-    stroke-opacity: .1;
+    opacity: .04;
 }
 
 .hidden {
-    fill-opacity: .1;
-    stroke-opacity: .2;
+    opacity: .1;
 }
 
 .d3-tip {

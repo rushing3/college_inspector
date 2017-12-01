@@ -8,7 +8,7 @@ var svgHeight = +svg.attr('height');
 var padding = {t: 90, r: 20, b: 40, l: 55};
 
 // Bar Chart dimensions
-var barChartWidth = svgWidth*(1/3) - 3*padding.r;
+var barChartWidth = svgWidth*(1/3) - 2*padding.r;
 var barChartHeight = svgHeight*(1/3) + 20 - padding.t;
 var barPadding = 28;
 
@@ -366,6 +366,19 @@ function BarChart(attribute, index) {
             scatterPlot.selectAll('.dot').classed('disappear', false);
             svg.selectAll('.bar').classed('hidden', false);
         })
+        .on('click', function(d) {
+            var dataElement = globalData.filter(function(c) { return c.name == d.name;})[0];
+            if (currentCards[dataElement['name']] == null
+                && Object.keys(currentCards).length < 2) {
+
+                currentCards[dataElement['name']] = card(dataElement);
+            } else if (Object.keys(currentCards).length == 2) {
+                currentCards[dataElement['name']] = card(dataElement);
+                var temp = currentCards[Object.keys(currentCards)[1]];
+                delete currentCards[Object.keys(currentCards)[1]];
+                temp.remove();
+            }
+        })
         .each(function(d, i) {
             d3.select(this).append('text')
                 .attr('fill', 'black')
@@ -516,8 +529,6 @@ function(error, dataset){
             });
         })
         .on('mouseout', function(d){ // Add hover end event binding
-            // Select the hovered g.dot
-            var hovered = d3.select(this);
             scatterPlot.selectAll('.dot').classed('hidden', false);
             legendCells.classed('hidden', false);
         })
@@ -745,6 +756,14 @@ function toggleTrendline() {
     select.classed('remove', trendlineToggle);
     trendlineToggle = !trendlineToggle;
 
+    updateViz();
+}
+
+function clearFilters() {
+    controlFilter = [];
+    regionFilter = [];
+
+    updateBarChart();
     updateViz();
 }
 
