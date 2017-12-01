@@ -26,15 +26,16 @@ var spXAxis = scatterPlot.append('g')
 var spYAxis = scatterPlot.append('g');
 
 // Colors for colorscale range
-var customColors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
-                    "#990099", "#0099c6", "#dd4477", "#66aa00",
-                    "#b82e2e", "#316395","#994499", "#22aa99",
-                    "#aaaa11", "#6633cc", "#e67300", "#8b0707",
-                    "#651067", "#329262", "#5574a6", "#3b3eac"];
-
+var customColors = [
+    "#3366cc", "#dc3912", "#ff9900", "#109618",
+    "#b82e2e", "#316395","#994499", "#22aa99",
+    "#aaaa11", "#6633cc", "#e67300", "#8b0707",
+    "#990099", "#0099c6", "#dd4477", "#66aa00",
+    "#651067", "#329262", "#5574a6", "#3b3eac"
+];
 
 // Region color scale
-//var regionColorScale = d3.scaleOrdinal(d3.schemeDark2);
+//var regionColorScale = d3.scaleOrdinal(d3.schemeCategory20);
 var regionColorScale = d3.scaleOrdinal();
 regionColorScale.range(customColors);
 
@@ -42,6 +43,11 @@ regionColorScale.range(customColors);
 var controlColorScale = d3.scaleOrdinal();
 controlColorScale.domain(['Private', 'Public']);
 controlColorScale.range(['white', 'black']);
+
+// Pie Chart colors
+//var pieColor = d3.scaleOrdinal(d3.schemeSet3);
+//var pieColor = d3.scaleOrdinal().range(customColors.slice(12,19));
+var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
@@ -151,10 +157,6 @@ var label = d3.arc()
 
 var controlFilter = [];
 var regionFilter = [];
-
-// Pie Chart colors
-//var pieColor = d3.scaleOrdinal(d3.schemeSet3);
-var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
 // Trendline toggle
 var trendlineToggle = true;
