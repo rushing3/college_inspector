@@ -62,12 +62,78 @@ var dotRad = 5;
 // Thickness of private dots' strokes
 var privateStroke = 2;
 
+function card(dataElement) {
+    var c = d3.select('#card-div')
+        .append('div')
+        .attr("class", "card")
+        .style("left", function(d, i) {
+            return "5px";
+        })
+        .html(function(d) {
+            return cardHtml(dataElement);
+        })
+        .on('click', function(d) {
+            delete currentCards[dataElement['name']];
+            d3.select(this).remove();
+        });
+
+    var demographics = d3.select('#'+dataElement['name'].replace(/\W/g, ''));
+
+    var demographicsData = [
+        {name: 'White', value: dataElement['percent_white']},
+        {name: 'Black', value: dataElement['percent_black']},
+        {name: 'Hispanic', value: dataElement['percent_hispanic']},
+        {name: 'Asian', value: dataElement['percent_asian']},
+        {name: 'American Indian', value: dataElement['percent_american_indian']},
+        {name: 'Pacific Islander', value: dataElement['percent_pacific_islander']},
+        {name: 'Biracial', value: dataElement['percent_biracial']}
+    ];
+
+    var g = demographics.append("g").attr("transform", "translate(" + radius + "," + radius + ")");
+
+    // Define legend for demographics colors
+    var demographicsDomain = demographicsData.map(function(d) {
+        return d.name + ' ' + d3.format('.0%')(d.value);
+    });
+    pieColor.domain(demographicsDomain);
+    var demographicsLegend = d3.legendColor().scale(pieColor).labelOffset(3);
+
+    // Add legend for demographics colors
+    g.append('g')
+        .attr('transform', 'translate('+[110, -50]+') scale(0.9, 0.9)')
+        .call(demographicsLegend);
+
+    var arc = g.selectAll('.arc')
+        .data(pie(demographicsData))
+        .enter().append('g')
+        .attr('class', 'arc');
+
+    arc.append('path')
+        .attr('d', path)
+        .attr('fill', function(d) { return pieColor(d.value); });
+
+    arc.append('text')
+        .attr('transform', function(d) { return 'translate(' + label.centroid(d) + ')'; })
+        .attr('dy', '0.35em')
+        .attr('text-anchor', 'middle')
+        .attr('fill', 'white')
+        .text(function(d) {
+            if (Math.round(d.data.value*100) > 2) {
+                return d3.format('.0%')(d.data.value);
+            } else {
+                return '';
+            }
+        });
+
+    return c;
+}
+
 // List of current Cards
 var currentCards = {};
 
 // Pie Chart dimensions
-var pieWidth = 400;
-var pieHeight = 240;
+var pieWidth = 355;
+var pieHeight = 215;
 var radius = pieHeight/2;
 
 // Pie Chart stuff
@@ -164,7 +230,7 @@ var cardHtml = function(dataElement) {
             </div>
             <div class="column">
                 <div class="pie-title">Demographics</div>
-                <svg id=`+dataElement['name'].replace(/ /g, '')+` width="`+pieWidth+`" height="`+pieHeight+`" style="border: 1px solid #777; background: white;">
+                <svg id=`+dataElement['name'].replace(/\W/g, '')+` width="`+pieWidth+`" height="`+pieHeight+`" style="border: 1px solid #777; background: white;">
                 </svg>
             </div>
         </div>
@@ -277,7 +343,7 @@ function BarChart(attribute, index) {
         .append('g')
         .attr('class', 'bar')
         .attr('transform', function(d, i) {
-            return 'translate('+[10, i * (barChartHeight/7) + 50]+')';
+            return 'translate('+[5, i * (barChartHeight/6.5) + 30]+')';
         })
         .on('mouseover', function(d){ // Add hover start event binding
             // Select the hovered g
@@ -393,7 +459,7 @@ function(error, dataset){
     var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
 
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 250, 537]+')')
+        .attr('transform', 'translate('+[svgWidth - 250, svgHeight - 182]+')')
         .call(controlLegend);
 
     svg.selectAll('.cell')
@@ -425,7 +491,7 @@ function(error, dataset){
 
     // Add legend for region colors
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 167, 530]+')')
+        .attr('transform', 'translate('+[svgWidth - 167, svgHeight - 190]+')')
         .call(regionLegend);
 
     svg.append('path')
@@ -491,6 +557,12 @@ function(error, dataset){
 
     updateBarChart();
     updateViz();
+
+    var cardData = globalData.filter(function(d){ return d.name.indexOf('Georgia Institute of Tech') != -1 || d.name.indexOf('University of Georgia') != -1;});
+    cardData = cardData.filter(function(d){ return dataFilter(d);});
+    currentCards[cardData[0]['name']] = card(cardData[0]);
+    currentCards[cardData[1]['name']] = card(cardData[1]);
+
 });
 
 function updateBarChart() {
@@ -555,68 +627,13 @@ function updateViz() {
             var dataElement = d;
             if (currentCards[dataElement['name']] == null
                 && Object.keys(currentCards).length < 2) {
-                var card = d3.select('#card-div')
-                    .append('div')
-                    .attr("class", "card")
-                    .style("left", function(d, i) {
-                        return "5px";
-                    })
-                    .html(function(d) {
-                        return cardHtml(dataElement);
-                    })
-                    .on('click', function(d) {
-                        delete currentCards[dataElement['name']];
-                        d3.select(this).remove();
-                    });
 
-                currentCards[dataElement['name']] = card;
-
-                var demographics = d3.select('#'+dataElement['name'].replace(/ /g, ''));
-
-                var demographicsData = [
-                    {name: 'White', value: dataElement['percent_white']},
-                    {name: 'Black', value: dataElement['percent_black']},
-                    {name: 'Hispanic', value: dataElement['percent_hispanic']},
-                    {name: 'Asian', value: dataElement['percent_asian']},
-                    {name: 'American Indian', value: dataElement['percent_american_indian']},
-                    {name: 'Pacific Islander', value: dataElement['percent_pacific_islander']},
-                    {name: 'Biracial', value: dataElement['percent_biracial']}
-                ];
-
-                var g = demographics.append("g").attr("transform", "translate(" + radius + "," + radius + ")");
-
-                // Define legend for demographics colors
-                var demographicsDomain = demographicsData.map(function(d) {
-                    return d.name + ' ' + d3.format('.0%')(d.value);
-                });
-                pieColor.domain(demographicsDomain);
-                var demographicsLegend = d3.legendColor().scale(pieColor);
-
-                // Add legend for demographics colors
-                g.append('g')
-                    .attr('transform', 'translate('+[126, -60]+')')
-                    .call(demographicsLegend);
-
-                var arc = g.selectAll('.arc')
-                    .data(pie(demographicsData))
-                    .enter().append('g')
-                    .attr('class', 'arc');
-
-                arc.append('path')
-                    .attr('d', path)
-                    .attr('fill', function(d) { return pieColor(d.value); });
-
-                arc.append('text')
-                    .attr('transform', function(d) { return 'translate(' + label.centroid(d) + ')'; })
-                    .attr('dy', '0.35em')
-                    .attr('text-anchor', 'middle')
-                    .text(function(d) {
-                        if (Math.round(d.data.value*100) > 2) {
-                            return d3.format('.0%')(d.data.value);
-                        } else {
-                            return '';
-                        }
-                    });
+                currentCards[dataElement['name']] = card(dataElement);
+            } else if (Object.keys(currentCards).length == 2) {
+                currentCards[dataElement['name']] = card(dataElement);
+                var temp = currentCards[Object.keys(currentCards)[1]];
+                delete currentCards[Object.keys(currentCards)[1]];
+                temp.remove();
             }
         })
         .on('mouseover', function(d, i) {

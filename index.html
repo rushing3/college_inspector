@@ -9,7 +9,13 @@
     </head>
     <body>
     <div id="main">
-        <div style="position: absolute; top: 650px; left: 980px;">
+        <div style="position: absolute; top: 17px; left: 450px;">
+            <div>
+                <h1 style="font-weight: 600">College Inspector</h1>
+                <hr>
+            </div>
+        </div>
+        <div style="position: absolute; top: 550px; left: 875px;">
             <div>
                 <label for="xAxisSelect" style="font-weight: 600">X-Axis:</label>
             </div>
@@ -34,8 +40,8 @@
                 <option value="employment_rate_after_8years">Employment Rate 8 years after entry</option>
             </select>
         </div>
-        <div style="position: absolute; top: 37px; left: 1005px;">
-            <select class="custom-select large" id="topSelect" style="font-weight: 600; border: 0px; outline: 0px;" onchange="onTopChanged()">
+        <div style="position: absolute; top: 27px; left: 890px;">
+            <select class="custom-select small" id="topSelect" style="font-weight: 600; border: 0px; outline: 0px; background-color: transparent;" onchange="onTopChanged()">
                 <option selected value="mean_earnings_after_8years">Top 5 Mean Earnings 8 years after Entry</option>
                 <option value="median_debt">Top 5 Median Debt</option>
                 <option value="retention_rate">Top 5 Retention Rate</option>
@@ -44,8 +50,8 @@
                 <option value="undergrad_population">Top 5 Undergrad Population</option>
             </select>
         </div>
-        <div style="position: absolute; top: 212px; left: 1005px;">
-            <select class="custom-select large" id="bottomSelect" style="font-weight: 600; border: 0px; outline: 0px;" onchange="onBottomChanged()">
+        <div style="position: absolute; top: 170px; left: 895px;">
+            <select class="custom-select small" id="bottomSelect" style="font-weight: 600; border: 0px; outline: 0px; background-color: transparent;" onchange="onBottomChanged()">
                 <option selected value="mean_earnings_after_8years"> Bottom 5 Mean Earnings 8 years after Entry</option>
                 <option value="median_debt"> Bottom 5 Median Debt</option>
                 <option value="retention_rate"> Bottom 5 Retention Rate</option>
@@ -54,20 +60,20 @@
                 <option value="undergrad_population">Bottom 5 Undergrad Population</option>
             </select>
         </div>
-        <div style="position: absolute; top: 441px; left: 1175px;">
+        <div style="position: absolute; top: 344px; left: 1025px;">
             <div>
                 <label for="filterTerm" style="font-size: 16px; font-weight: 600;">Search by Name:</label>
             </div>
             <input type="text" value="" style="width: 230px;" onchange="onFilterTermChanged(this.value)">
             <hr>
         </div>
-        <div style="position: absolute; top: 465px; left: 1000px;">
+        <div style="position: absolute; top: 372px; left: 870px;">
             <div>
-                <button class="btn btn-basic" style="font-size: 16px; font-weight: 600;" onClick=toggleTrendline()>Toggle Trendline</button>
+                <button class="btn btn-basic btn-sm" style="font-size: 16px; font-weight: 600;" onClick=toggleTrendline()>Toggle Trendline</button>
             </div>
             <hr>
         </div>
-        <svg width="1420" height="720" style="border: 1px solid #777;">
+        <svg width="1260" height="620" style="border: 1px solid #777;">
         </svg>
         <div class="card-table">
             <div id="card-div" class="row">
