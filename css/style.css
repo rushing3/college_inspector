@@ -7,7 +7,7 @@ body {
 }
 
 html {
-    zoom: 0.8; /* Old IE only */
+    zoom: 0.8;
 }
 
 .title h3 {
