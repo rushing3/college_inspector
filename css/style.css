@@ -3,7 +3,7 @@
 }
 
 body {
-    font-family: "Open Sans";
+    font-family: "Arial";
 }
 
 .title h3 {
@@ -39,9 +39,19 @@ a {
     shape-rendering: crispEdges;
 }
 
+.remove {
+    fill-opacity: 0;
+    stroke-opacity: 0;
+}
+
+.disappear {
+    fill-opacity: .02;
+    stroke-opacity: .1;
+}
+
 .hidden {
     fill-opacity: .1;
-    stroke-opacity: .1;
+    stroke-opacity: .2;
 }
 
 .d3-tip {

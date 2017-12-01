@@ -5,7 +5,12 @@ var svgWidth = +svg.attr('width');
 var svgHeight = +svg.attr('height');
 
 // Define a padding object
-var padding = {t: 90, r: 40, b: 40, l: 55};
+var padding = {t: 90, r: 20, b: 40, l: 55};
+
+// Bar Chart dimensions
+var barChartWidth = svgWidth*(1/3) - 3*padding.r;
+var barChartHeight = svgHeight*(1/3) + 20 - padding.t;
+var barPadding = 28;
 
 // ScatterPlot dimensions
 var spWidth = svgWidth*(2/3) - padding.l;
@@ -33,9 +38,17 @@ var customColors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
 var regionColorScale = d3.scaleOrdinal();
 regionColorScale.range(customColors);
 
+// Makeshift control scale
+var controlColorScale = d3.scaleOrdinal();
+controlColorScale.domain(['Private', 'Public']);
+controlColorScale.range(['white', 'black']);
+
 // Create scales
 var xScale = d3.scaleLinear().range([0, spWidth]);
 var yScale = d3.scaleLinear().range([spHeight, 0]);
+
+// Bar scales
+var xBarScale = d3.scaleLinear().rangeRound([0, barChartWidth - 2*barPadding]);
 
 // Regression line
 var regression = d3.line();
@@ -46,11 +59,8 @@ var filterTerm = '';
 // Dot radius
 var dotRad = 5;
 
-// Num of dots in row
-var rowNum;
-
-// Dot spacing
-var dotSpace = dotRad*2 + 1;
+// Thickness of private dots' strokes
+var privateStroke = 2;
 
 // List of current Cards
 var currentCards = {};
@@ -61,6 +71,10 @@ var pieHeight = 240;
 var radius = pieHeight/2;
 
 // Pie Chart stuff
+var pie = d3.pie()
+    .sort(null)
+    .value(function(d) {return d.value});
+
 var path = d3.arc()
     .outerRadius(radius - 6)
     .innerRadius(0);
@@ -69,13 +83,19 @@ var label = d3.arc()
     .outerRadius(radius - 21)
     .innerRadius(radius - 21);
 
+var controlFilter = [];
+var regionFilter = [];
+
 // Pie Chart colors
 //var pieColor = d3.scaleOrdinal(d3.schemeSet3);
 var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
+// Trendline toggle
+var trendlineToggle = true;
+
 // Card HTML
 var cardHtml = function(dataElement) {
-    return `<h5>`+dataElement['name']+`</h5>
+    return `<h5>`+dataElement['name']+ '  (' + dataElement['control'] + ')' +`</h5>
     <div class="table">
         <div class="row">
             <div class="column" style="padding: 0px 15px 4px 0px;">
@@ -194,48 +214,123 @@ var toolTip = d3.tip()
 
 svg.call(toolTip);
 
-function Visual(x) {
-    this.x = x;
+function dataFilter(d) {
+        var dataCheck = (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
+        var controlCheck;
+        if (controlFilter.length > 0) {
+            controlCheck = controlFilter.includes(d.control);
+        } else {
+            controlCheck = true;
+        }
+        var regionCheck;
+        if (regionFilter.length > 0) {
+            regionCheck = regionFilter.includes(d.region);
+        } else {
+            regionCheck = true;
+        }
+        return dataCheck && controlCheck && regionCheck;
 }
 
-Visual.prototype.init = function(data, group) {
-    var viz = d3.select(group);
+function BarChart(attribute, index) {
+    var group = svg.append('g')
+        .attr('transform', 'translate('+[svgWidth - barChartWidth - padding.r, index*(barChartHeight + 5) + padding.r]+')');
 
-    // Add dot for each college in region, color coded by region
-    viz.selectAll('.college')
-        .data(data.value.values)
-        .enter()
-        .append('circle')
-        .attr('fill', function(d) {
-            return regionColorScale(d.region);
-        })
-        .attr('r', dotRad)
-        .attr('cx', function(d, i) {
-            return (i%rowNum)*dotSpace + 10;
-        })
-        .attr('cy', function(d, i) {
-            return Math.floor(i/rowNum)*dotSpace + 70;
-        })
-        .on('mouseover', function(d, i) {
-            t = d3.select(this.parentNode).attr('transform');
-            t = t.split('(')[1].split(',')[0];
-            t = parseFloat(t);
-            cy = d3.select(this).attr('cy');
-            cx = d3.select(this).attr('cx');
-            absx = parseFloat(cx) + t;
-            if(cy < 100 && absx < 200) {
-                toolTip.direction('se');
-            } else if (cy < 100) {
-                toolTip.direction('s');
-            } else if (absx < 200) {
-                toolTip.direction('ne');
+    var barData = globalData.filter(function(d) { return dataFilter(d); });
+
+    barData = barData.map(function(d) {
+        return {
+            name: d.name,
+            value: d[attribute],
+            region: d.region
+            };
+        }).filter(function(d) {
+            return d.value != 0;
+        }).sort(function(a, b) {
+            if (index == 0) {
+                return d3.descending(a.value, b.value);
             } else {
-                toolTip.direction('n');
+                return d3.ascending(a.value, b.value);
             }
-            toolTip.show(d, i);
-        })
-        .on('mouseout', toolTip.hide);
+        });
 
+    var xBarDomain = d3.extent(barData, function(d){
+        return d.value;
+    });
+
+    xBarScale.domain(xBarDomain).nice();
+    barData = barData.slice(0, 5);
+
+    // Add rectangle for barchart outline
+    group.append('rect')
+        .attr('x', '0')
+        .attr('y', '0')
+        .attr('width', barChartWidth)
+        .attr('height', barChartHeight)
+        .attr('fill', 'white')
+        .attr('stroke', 'black')
+        .attr('stroke-width', '1px');
+
+    var chart = group.selectAll('.bar')
+        .data(barData);
+
+    chartEnter = chart.enter()
+        .append('g')
+        .attr('class', 'bar')
+        .attr('transform', function(d, i) {
+            return 'translate('+[10, i * (barChartHeight/7) + 50]+')';
+        })
+        .on('mouseover', function(d){ // Add hover start event binding
+            // Select the hovered g
+            var hovered = d3.select(this);
+            text = hovered.select('text').text();
+            text = text.split('. ')[1].split(' -')[0];
+            scatterPlot.selectAll('.dot').classed('disappear', function(d) {
+                return d.name != text;
+            });
+            // Show the text, otherwise hidden
+            svg.selectAll('.bar').classed('hidden', function(d) {
+                return d.name != text;
+            });
+        })
+        .on('mouseout', function(d){ // Add hover end event binding
+            // Select the hovered g
+            var hovered = d3.select(this);
+            scatterPlot.selectAll('.dot').classed('disappear', false);
+            svg.selectAll('.bar').classed('hidden', false);
+        })
+        .each(function(d, i) {
+            d3.select(this).append('text')
+                .attr('fill', 'black')
+                .attr("font-size", 12)
+                .attr('transform', 'translate(14, 9)')
+                .text(function(x) {
+                    if (attribute.indexOf('rate') != -1) {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format('.0%')(d.value);
+                    } else if (attribute.indexOf('population') != -1) {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format(",i")(d.value);
+                    } else {
+                        return (i+1) + '. ' + d.name + ' - ' + d3.format("$,i")(d.value);
+                    }
+                });
+
+            d3.select(this).append('rect')
+                .attr('width', function(x) {
+                    return xBarScale(d.value);
+                })
+                .attr('height', '4')
+                .attr('fill', function(x) {
+                    return regionColorScale(d.region);
+                })
+                .attr('transform', function(x) {
+                    return 'translate('+[barPadding, 12]+')';
+                });
+        });
+
+    chart.merge(chartEnter).transition();
+
+    chart.exit().remove();
+
+    return group;
 };
 
 d3.csv('./data/colleges.csv',
@@ -294,6 +389,22 @@ function(error, dataset){
     // Define dataset globally
     globalData = dataset;
 
+    // Define legend for private/public control
+    var controlLegend = d3.legendColor().shape('circle').shapeRadius(dotRad).scale(controlColorScale);
+
+    svg.append('g')
+        .attr('transform', 'translate('+[svgWidth - 250, 537]+')')
+        .call(controlLegend);
+
+    svg.selectAll('.cell')
+        .attr('stroke', function (d) {
+            if (d === 'Private') {
+                d3.select(this).select('.swatch')
+                    .attr('stroke-width', privateStroke)
+                    .attr('stroke', 'black');
+            }
+        });
+
     // Nest region data
     var regionData = d3.nest()
         .key(function(d) {
@@ -314,7 +425,7 @@ function(error, dataset){
 
     // Add legend for region colors
     svg.append('g')
-        .attr('transform', 'translate('+[svgWidth - 150, 530]+')')
+        .attr('transform', 'translate('+[svgWidth - 167, 530]+')')
         .call(regionLegend);
 
     svg.append('path')
@@ -329,7 +440,7 @@ function(error, dataset){
             var hovered = d3.select(this);
             text = hovered.select('text').text();
             scatterPlot.selectAll('.dot').classed('hidden', function(d) {
-                return d.region != text;
+                return d.region != text && d.control != text;
             });
             // Show the text, otherwise hidden
             legendCells.classed('hidden', function(d) {
@@ -341,17 +452,57 @@ function(error, dataset){
             var hovered = d3.select(this);
             scatterPlot.selectAll('.dot').classed('hidden', false);
             legendCells.classed('hidden', false);
+        })
+        .on('click', function (d) { // filters data
+            // Handle control filter
+            if (d === 'Private' || d === 'Public') {
+                if (!controlFilter.includes(d)) {
+                    controlFilter.push(d);
+                    if (controlFilter.length === 2) {
+                        controlFilter = [];
+                    }
+                } else {
+                    controlFilter.pop(d);
+                }
+            }
+            // Handle region filters
+            else {
+                if (!regionFilter.includes(d)) {
+                    regionFilter.push(d);
+                    if (regionFilter.length === 9) {
+                        regionFilter = [];
+                    }
+                } else {
+                    regionFilter.pop(d);
+                }
+            }
+            updateBarChart();
+            updateViz()
         });
+
+    // Create global object called barCharts to keep state
+    barCharts = {
+        0: {attribute: 'mean_earnings_after_8years', index: 0},
+        1: {attribute: 'mean_earnings_after_8years', index: 1},
+    };
 
     // Create global object called chartScales to keep state
     chartScales = {x: 'sat_average', y: 'mean_earnings_after_8years'};
 
+    updateBarChart();
     updateViz();
 });
 
+function updateBarChart() {
+
+    BarChart(barCharts[0]['attribute'], 0);
+    BarChart(barCharts[1]['attribute'], 1);
+
+}
+
 function updateViz() {
     data = globalData.filter(function(d) {
-        return (d[chartScales.x] != 0 && !isNaN(d[chartScales.x]) && d[chartScales.y] != 0 && !isNaN(d[chartScales.y]));
+        return dataFilter(d);
     });
 
     xDomain = d3.extent(data, function(data_element){
@@ -422,10 +573,6 @@ function updateViz() {
 
                 var demographics = d3.select('#'+dataElement['name'].replace(/ /g, ''));
 
-                var pie = d3.pie()
-                    .sort(null)
-                    .value(function(d) {return d.value});
-
                 var demographicsData = [
                     {name: 'White', value: dataElement['percent_white']},
                     {name: 'Black', value: dataElement['percent_black']},
@@ -450,21 +597,21 @@ function updateViz() {
                     .attr('transform', 'translate('+[126, -60]+')')
                     .call(demographicsLegend);
 
-                var arc = g.selectAll(".arc")
+                var arc = g.selectAll('.arc')
                     .data(pie(demographicsData))
-                    .enter().append("g")
-                    .attr("class", "arc");
+                    .enter().append('g')
+                    .attr('class', 'arc');
 
-                arc.append("path")
-                    .attr("d", path)
-                    .attr("fill", function(d) { return pieColor(d.value); });
+                arc.append('path')
+                    .attr('d', path)
+                    .attr('fill', function(d) { return pieColor(d.value); });
 
-                arc.append("text")
-                    .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
-                    .attr("dy", "0.35em")
-                    .attr("text-anchor", "middle")
+                arc.append('text')
+                    .attr('transform', function(d) { return 'translate(' + label.centroid(d) + ')'; })
+                    .attr('dy', '0.35em')
+                    .attr('text-anchor', 'middle')
                     .text(function(d) {
-                        if (Math.round(d.data.value*100) > 1) {
+                        if (Math.round(d.data.value*100) > 2) {
                             return d3.format('.0%')(d.data.value);
                         } else {
                             return '';
@@ -496,10 +643,6 @@ function updateViz() {
     dots.merge(dotsEnter)
         .transition()
         .duration(750)
-
-    dots.merge(dotsEnter)
-        .transition()
-        .duration(750)
         .attr('fill', function(d) {
             if (d['control'] === 'Private') {
                 return 'white'
@@ -510,6 +653,7 @@ function updateViz() {
         .attr('stroke', function (d) {
             return regionColorScale(d.region);
         })
+        .attr('stroke-width', privateStroke)
         .attr('transform', function(d) {
             var tx = xScale(d[chartScales.x]);
             var ty = yScale(d[chartScales.y]);
@@ -552,8 +696,35 @@ function onYChanged() {
     updateViz();
 }
 
+function onTopChanged() {
+    var select = d3.select('#topSelect').node();
+    var top = select.options[select.selectedIndex].value;
+
+    barCharts[0] = {attribute: top, index: 0};
+
+    updateBarChart();
+}
+
+function onBottomChanged() {
+    var select = d3.select('#bottomSelect').node();
+    var bottom = select.options[select.selectedIndex].value;
+
+    barCharts[1] = {attribute: bottom, index: 1};
+
+    updateBarChart();
+}
+
 function onFilterTermChanged(newFilterTerm) {
     filterTerm = newFilterTerm;
+
+    updateViz();
+}
+
+function toggleTrendline() {
+    var select = d3.select('.trendline');
+
+    select.classed('remove', trendlineToggle);
+    trendlineToggle = !trendlineToggle;
 
     updateViz();
 }
