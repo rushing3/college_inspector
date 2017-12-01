@@ -90,6 +90,9 @@ var regionFilter = [];
 //var pieColor = d3.scaleOrdinal(d3.schemeSet3);
 var pieColor = d3.scaleOrdinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
 
+// Trendline toggle
+var trendlineToggle = true;
+
 // Card HTML
 var cardHtml = function(dataElement) {
     return `<h5>`+dataElement['name']+ '  (' + dataElement['control'] + ')' +`</h5>
@@ -472,7 +475,6 @@ function(error, dataset){
                 } else {
                     regionFilter.pop(d);
                 }
-                console.log(regionFilter);
             }
             updateBarChart();
             updateViz()
@@ -714,6 +716,15 @@ function onBottomChanged() {
 
 function onFilterTermChanged(newFilterTerm) {
     filterTerm = newFilterTerm;
+
+    updateViz();
+}
+
+function toggleTrendline() {
+    var select = d3.select('.trendline');
+
+    select.classed('remove', trendlineToggle);
+    trendlineToggle = !trendlineToggle;
 
     updateViz();
 }
