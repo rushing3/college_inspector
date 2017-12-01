@@ -372,7 +372,10 @@ function BarChart(attribute, index) {
                 && Object.keys(currentCards).length < 2) {
 
                 currentCards[dataElement['name']] = card(dataElement);
-            } else if (Object.keys(currentCards).length == 2) {
+
+            } else if (currentCards[dataElement['name']] == null
+                && Object.keys(currentCards).length == 2) {
+
                 currentCards[dataElement['name']] = card(dataElement);
                 var temp = currentCards[Object.keys(currentCards)[1]];
                 delete currentCards[Object.keys(currentCards)[1]];

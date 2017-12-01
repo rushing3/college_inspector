@@ -6,6 +6,10 @@ body {
     font-family: "Arial";
 }
 
+html {
+    zoom: 0.8; /* Old IE only */
+}
+
 .title h3 {
     font-size: 20px;
     font-weight: light;
