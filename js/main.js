@@ -163,7 +163,10 @@ var trendlineToggle = true;
 
 // Card HTML
 var cardHtml = function(dataElement) {
-    return `<h5>`+dataElement['name']+ '  (' + dataElement['control'] + ')' +`</h5>
+    return `<h5>`+dataElement['name']+ `  (` + dataElement['control'] + `)</h5>
+    <p style="font-size: 10px; position: absolute; top: 5px; right: 5px;">
+        [X]
+    </p>
     <div class="table">
         <div class="row">
             <div class="column" style="padding: 0px 15px 4px 0px;">
